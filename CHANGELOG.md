@@ -4,6 +4,38 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.13.3] - 2025-09-03
+
+### 🐛 **Critical Bug Fixes**
+
+#### macOS SQLite Extension Support (Fixes Issue #97)
+- **Fixed AttributeError**: Resolved `'sqlite3.Connection' object has no attribute 'enable_load_extension'` error on macOS
+  - Added comprehensive extension support detection before attempting to load sqlite-vec
+  - Graceful error handling with clear, actionable error messages
+  - Platform-specific guidance for macOS users (Homebrew Python, pyenv with extension support)
+  - Interactive prompt to switch to ChromaDB backend when extensions unavailable
+- **Enhanced sqlite_vec.py**: Added `_check_extension_support()` method with robust error handling
+- **Improved install.py**: Added SQLite extension support detection and warnings during installation
+
+### 📚 **Documentation Updates**
+
+#### macOS Extension Loading Documentation
+- **README Updates**: Added dedicated macOS SQLite extension support section with solutions
+- **First-Time Setup Guide**: Comprehensive macOS extension issues section with verification commands
+- **Troubleshooting Guide**: Detailed troubleshooting for `enable_load_extension` AttributeError
+- **Clear Solutions**: Step-by-step instructions for Homebrew Python and pyenv with extension support
+
+### 🔧 **Installation Improvements**
+- **Proactive Detection**: Installer now checks SQLite extension support before attempting sqlite-vec installation
+- **Interactive Fallback**: Option to automatically switch to ChromaDB when sqlite-vec cannot work
+- **Better Error Messages**: Platform-specific solutions instead of cryptic errors
+- **System Information**: Enhanced system info display includes SQLite extension support status
+
+### 🏥 **Error Handling**
+- **Runtime Protection**: sqlite-vec backend now fails gracefully with helpful error messages
+- **Clear Guidance**: Detailed error messages explain why the error occurs and provide multiple solutions
+- **Automatic Detection**: System automatically detects extension support capabilities
+
 ## [6.13.2] - 2025-09-03
 
 ### 🐛 **Bug Fixes**

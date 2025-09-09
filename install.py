@@ -294,6 +294,29 @@ def detect_system():
     }
     return _system_info_cache
 
+def check_sqlite_extension_support():
+    """Check if Python's sqlite3 supports loading extensions."""
+    import sqlite3
+    
+    test_conn = None
+    try:
+        test_conn = sqlite3.connect(":memory:")
+        if not hasattr(test_conn, 'enable_load_extension'):
+            return False, "Python sqlite3 module not compiled with extension support"
+        
+        # Test if we can actually enable extension loading
+        test_conn.enable_load_extension(True)
+        test_conn.enable_load_extension(False)
+        return True, "Extension loading supported"
+        
+    except AttributeError as e:
+        return False, f"enable_load_extension not available: {e}"
+    except Exception as e:
+        return False, f"Extension support check failed: {e}"
+    finally:
+        if test_conn:
+            test_conn.close()
+
 def detect_gpu():
     """Detect GPU and acceleration capabilities."""
     system_info = detect_system()
@@ -948,6 +971,37 @@ def install_storage_backend(backend, system_info):
     print_step("3c", f"Installing {backend} storage backend")
     
     if backend == "sqlite_vec":
+        # Check extension support before attempting installation
+        extension_supported, extension_message = check_sqlite_extension_support()
+        if not extension_supported:
+            print_warning(f"SQLite extension support not available: {extension_message}")
+            
+            # Provide platform-specific guidance
+            if platform.system().lower() == "darwin":  # macOS
+                print_info("This is common on macOS with system Python.")
+                print_info("SOLUTIONS:")
+                print_info("  • Install Python via Homebrew: brew install python")
+                print_info("  • Use pyenv with extensions: PYTHON_CONFIGURE_OPTS='--enable-loadable-sqlite-extensions' pyenv install 3.12.0")
+                print_info("  • Switch to ChromaDB backend: --storage-backend chromadb")
+                
+                # Ask user what they want to do
+                if not system_info.get('non_interactive'):
+                    print("\n" + "=" * 60)
+                    print("⚠️  USER INPUT REQUIRED")
+                    print("=" * 60)
+                    print("sqlite-vec requires SQLite extension support, which is not available.")
+                    response = input("Switch to ChromaDB backend instead? (y/N): ").strip().lower()
+                    print("=" * 60 + "\n")
+                    if response in ['y', 'yes']:
+                        print_info("Switching to ChromaDB backend...")
+                        return install_storage_backend("chromadb", system_info)
+                    else:
+                        print_info("Continuing with sqlite-vec installation (may fail at runtime)...")
+                else:
+                    print_info("Non-interactive mode: attempting sqlite-vec installation anyway")
+            else:
+                print_info("Consider switching to ChromaDB backend for better compatibility")
+        
         # Special handling for Python 3.13
         if sys.version_info >= (3, 13):
             print_info("Detected Python 3.13+ - using special installation method for sqlite-vec")
@@ -1842,12 +1896,21 @@ def show_detailed_help():
     gpu_info = detect_gpu()
     memory_gb = detect_memory_gb()
     
+    # Check SQLite extension support
+    extension_supported, extension_message = check_sqlite_extension_support()
+    
     print_info("Your System Configuration:")
     print_info(f"  Platform: {platform.system()} {platform.release()}")
     print_info(f"  Architecture: {platform.machine()}")
     print_info(f"  Python: {sys.version_info.major}.{sys.version_info.minor}")
     if memory_gb > 0:
         print_info(f"  Memory: {memory_gb:.1f}GB")
+    print_info(f"  SQLite Extensions: {'✅ Supported' if extension_supported else '❌ Not Supported'}")
+    
+    # Warn about potential sqlite-vec issues
+    if not extension_supported and platform.system().lower() == "darwin":
+        print_warning("SQLite extension support not available - this may cause issues with sqlite-vec backend")
+        print_info("Consider using Homebrew Python: brew install python")
     
     # Hardware-specific recommendations
     print_step("Recommendations", "Based on your hardware")

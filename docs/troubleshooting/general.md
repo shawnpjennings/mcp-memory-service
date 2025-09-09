@@ -78,6 +78,73 @@ For detailed information, see the [First-Time Setup Guide](../first-time-setup.m
    - Check for updates: https://github.com/asg017/sqlite-vec/issues
    - sqlite-vec may add Python 3.13 support in future releases
 
+## macOS SQLite Extension Issues
+
+### Problem: `AttributeError: 'sqlite3.Connection' object has no attribute 'enable_load_extension'`
+**Error:** Python 3.12 (and other versions) on macOS failing with sqlite-vec backend
+
+**Cause:** Python on macOS is not compiled with `--enable-loadable-sqlite-extensions` by default. The system SQLite library doesn't support extensions.
+
+**Platform:** Affects macOS (all versions), particularly with system Python
+
+**Solutions:**
+
+1. **Use Homebrew Python (Recommended)**
+   ```bash
+   # Install Homebrew Python (includes extension support)
+   brew install python
+   hash -r  # Refresh shell command cache
+   python3 --version  # Verify Homebrew version
+   
+   # Reinstall MCP Memory Service
+   python3 install.py
+   ```
+
+2. **Use pyenv with Extension Support**
+   ```bash
+   # Install pyenv
+   brew install pyenv
+   
+   # Install Python with extension support
+   PYTHON_CONFIGURE_OPTS="--enable-loadable-sqlite-extensions" \
+   LDFLAGS="-L$(brew --prefix sqlite)/lib" \
+   CPPFLAGS="-I$(brew --prefix sqlite)/include" \
+   pyenv install 3.12.0
+   
+   pyenv local 3.12.0
+   python install.py
+   ```
+
+3. **Switch to ChromaDB Backend**
+   ```bash
+   # ChromaDB doesn't require SQLite extensions
+   export MCP_MEMORY_STORAGE_BACKEND=chromadb
+   python install.py --storage-backend chromadb
+   ```
+
+4. **Verify Extension Support**
+   ```bash
+   python3 -c "
+   import sqlite3
+   conn = sqlite3.connect(':memory:')
+   if hasattr(conn, 'enable_load_extension'):
+       try:
+           conn.enable_load_extension(True)
+           print('✅ Extension support working')
+       except Exception as e:
+           print(f'❌ Extension support disabled: {e}')
+   else:
+       print('❌ No enable_load_extension attribute')
+   "
+   ```
+
+**Why this happens:**
+- Security: Extension loading disabled by default
+- Compilation: System Python not built with extension support
+- Library: macOS bundled SQLite lacks extension loading capability
+
+**Detection:** The installer now automatically detects this issue and provides guidance.
+
 ## Common Installation Issues
 
 [Content from installation.md's troubleshooting section - already well documented]
