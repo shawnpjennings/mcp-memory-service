@@ -116,6 +116,59 @@ pip install --no-binary :all: sqlite-vec
 pip install git+https://github.com/asg017/sqlite-vec.git#subdirectory=python
 ```
 
+## 🍎 macOS SQLite Extension Issues
+
+### Problem: `AttributeError: 'sqlite3.Connection' object has no attribute 'enable_load_extension'`
+
+This error occurs on **macOS with system Python** because it's not compiled with SQLite extension support.
+
+**Why this happens:**
+- macOS system Python lacks `--enable-loadable-sqlite-extensions`
+- The bundled SQLite library doesn't support loadable extensions
+- This is a security-focused default configuration
+
+**Solutions:**
+
+**Option 1: Homebrew Python (Recommended)**
+```bash
+# Install Python via Homebrew (includes extension support)
+brew install python
+hash -r  # Refresh command cache
+python3 --version  # Verify you're using Homebrew Python
+
+# Then install MCP Memory Service
+python3 install.py
+```
+
+**Option 2: pyenv with Extension Support**
+```bash
+# Install pyenv if not already installed
+brew install pyenv
+
+# Install Python with extension support
+PYTHON_CONFIGURE_OPTS="--enable-loadable-sqlite-extensions" pyenv install 3.12.0
+pyenv local 3.12.0
+
+# Verify extension support
+python3 -c "import sqlite3; conn=sqlite3.connect(':memory:'); conn.enable_load_extension(True); print('Extensions supported!')"
+```
+
+**Option 3: Use ChromaDB Backend**
+```bash
+# ChromaDB doesn't require SQLite extensions
+python3 install.py --storage-backend chromadb
+```
+
+### Verification
+Check if your Python supports extensions:
+```bash
+python3 -c "
+import sqlite3
+conn = sqlite3.connect(':memory:')
+print('✅ Extension support available' if hasattr(conn, 'enable_load_extension') else '❌ No extension support')
+"
+```
+
 ## 🐧 Ubuntu/Linux Specific Notes
 
 For Ubuntu 24 and other Linux distributions:
