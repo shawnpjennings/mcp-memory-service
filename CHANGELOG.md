@@ -4,6 +4,35 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.13.4] - 2025-09-14
+
+### 🐛 **Critical Bug Fixes**
+
+#### Memory Search Timezone Inconsistency (Fixes Issue #99)
+- **Fixed timezone handling bug**: Resolved critical inconsistency in timestamp validation between hook-generated and manual memories
+  - **Root Cause**: Memory model was incorrectly interpreting ISO timestamps without 'Z' suffix as local time instead of UTC
+  - **Solution**: Enhanced `iso_to_float()` function with explicit UTC handling using `calendar.timegm()`
+  - **Impact**: Time-based memory searches (e.g., "yesterday", "last week") now consistently find all memories regardless of storage method
+- **Improved timestamp validation**: Enhanced `_sync_timestamps()` method with better timezone mismatch detection
+  - Added logic to detect timezone offset discrepancies between float and ISO timestamps
+  - Automatic correction when timezone issues detected (prefers float timestamp as authoritative)
+  - Better logging for timezone validation issues during memory creation
+- **Comprehensive test coverage**: Added extensive test suite validating fix effectiveness
+  - `test_hook_vs_manual_storage.py`: Validates consistency between hook and manual memory storage
+  - `test_issue99_final_validation.py`: Confirms timezone fix resolves the original issue
+  - `test_search_retrieval_inconsistency.py`: Root cause analysis and validation tests
+  - `test_data_serialization_consistency.py`: Memory serialization consistency validation
+
+### 🔧 **Technical Improvements**
+- **Memory Model Enhancement**: Strengthened timestamp handling throughout the memory lifecycle
+  - More robust ISO string parsing with fallback mechanisms
+  - Better error handling for edge cases in timestamp conversion
+  - Consistent UTC interpretation across all timestamp operations
+
+### 📚 **Documentation Updates**
+- **Issue Resolution**: GitHub Issue #99 documented and resolved with comprehensive technical analysis
+- **Test Documentation**: Added detailed test suite documentation for memory storage consistency
+
 ## [6.13.3] - 2025-09-03
 
 ### 🐛 **Critical Bug Fixes**
