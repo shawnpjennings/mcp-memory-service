@@ -83,6 +83,52 @@ python scripts/check_documentation_links.py --format json
 - CI/CD pipeline integration
 - After repository restructuring
 
+### Timestamp Diagnostic Tools
+
+**`simple_timestamp_check.py`** - Production-ready timestamp health analyzer for SQLite databases
+
+```bash
+# Quick health check using default database
+python scripts/simple_timestamp_check.py
+
+# Analyze specific database file
+python scripts/simple_timestamp_check.py /path/to/database.db
+
+# JSON output for programmatic use
+python scripts/simple_timestamp_check.py --format json
+
+# Save results to file
+python scripts/simple_timestamp_check.py --format json --output results.json
+
+# Verbose analysis with detailed examples
+python scripts/simple_timestamp_check.py --verbose
+
+# Quick summary only
+python scripts/simple_timestamp_check.py --format summary
+```
+
+**Features:**
+- ✅ Direct SQLite database analysis (no service dependencies)
+- ✅ Comprehensive timestamp field validation
+- ✅ Health status assessment with exit codes
+- ✅ Multiple output formats (text, JSON, summary)
+- ✅ Detailed reporting of missing and inconsistent timestamps
+- ✅ Cross-platform database path detection (macOS default)
+- ✅ Production-ready error handling and logging
+
+**Use Cases:**
+- Database health monitoring
+- Timestamp migration verification
+- Troubleshooting search inconsistencies
+- CI/CD database validation
+- Production database maintenance
+
+**Exit Codes:**
+- `0` - Excellent/Good health
+- `1` - Warning status
+- `2` - Critical issues found
+- `3` - Analysis failed (database errors)
+
 ## Usage
 
 All scripts should be run from the repository root or with appropriate path adjustments.
