@@ -154,8 +154,8 @@ sqlite3 ~/.mcp-memory-service/sqlite_vec.db ".tables"
 1. Update version in `pyproject.toml`
 2. Update CHANGELOG.md with changes
 3. Run full test suite: `pytest tests/`
-4. Create git tag: `git tag -a v6.x.x -m "Release v6.x.x"`
-5. Push tag: `git push origin v6.x.x`
+4. Create git tag: `git tag -a vX.Y.Z -m "Release vX.Y.Z"`
+5. Push tag: `git push origin vX.Y.Z`
 6. GitHub Actions will handle PyPI release
 
 ## Common Issues and Solutions
