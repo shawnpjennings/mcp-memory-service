@@ -4,6 +4,18 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.13.5] - 2025-09-15
+
+### 🐛 **Bug Fixes**
+
+#### macOS Service Installation Script Fix (PR #101)
+- **Fixed NameError**: Resolved `NameError: name 'paths' is not defined` in `install_macos_service.py` at line 238
+  - **Root Cause**: Variable `paths` was referenced in `platform_info` dictionary without being initialized
+  - **Solution**: Added `paths = get_service_paths()` call before usage, following existing code patterns
+  - **Impact**: macOS service installation now works reliably without runtime errors
+- **Credit**: Thanks to @hex for identifying and fixing this issue
+- **Files Modified**: `scripts/install_macos_service.py`
+
 ## [6.13.4] - 2025-09-14
 
 ### 🐛 **Critical Bug Fixes**
