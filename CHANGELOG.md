@@ -25,6 +25,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   - Better onboarding for contributors using AI tools
 - **Files Added**: `AGENTS.md`
 
+#### Added CONTRIBUTING.md for Contributor Guidelines
+- **Fixed dead link**: Resolved broken reference in README.md line 195
+- **Comprehensive guidelines**: Added detailed contribution instructions including:
+  - Development environment setup with platform-specific notes
+  - Code style and Python conventions following PEP 8
+  - Testing requirements with pytest examples
+  - Semantic commit message format
+  - Pull request process and review guidelines
+- **Code of Conduct**: Included basic behavioral guidelines for inclusive community
+- **Multiple contribution paths**: Documented various ways to contribute (code, docs, testing, support)
+- **Integration**: Links to existing documentation (AGENTS.md, CLAUDE.md, Wiki)
+- **Files Added**: `CONTRIBUTING.md`
+
 ## [6.13.5] - 2025-09-15
 
 ### 🐛 **Bug Fixes**
