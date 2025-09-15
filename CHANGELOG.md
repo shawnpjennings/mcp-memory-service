@@ -4,6 +4,27 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.13.6] - 2025-09-16
+
+### 📚 **Documentation**
+
+#### Added AGENTS.md for AI Coding Agents
+- **New standard format**: Added `AGENTS.md` following the industry-standard [agents.md](https://agents.md/) specification
+  - **Purpose**: Provides AI coding agents with project-specific instructions and context
+  - **Compatibility**: Works with GitHub Copilot, Cursor, VS Code, Continue, and other AI tools
+  - **Complements CLAUDE.md**: Generic instructions for all AI agents vs Claude-specific in CLAUDE.md
+- **Content includes**:
+  - Setup commands and testing procedures
+  - Project structure and key files overview
+  - Code style guidelines and conventions
+  - Common development tasks and patterns
+  - Security guidelines and debugging tips
+- **Benefits**:
+  - Standardized location for AI agent instructions (becoming industry standard)
+  - Improved developer experience when using AI coding assistants
+  - Better onboarding for contributors using AI tools
+- **Files Added**: `AGENTS.md`
+
 ## [6.13.5] - 2025-09-15
 
 ### 🐛 **Bug Fixes**
