@@ -292,7 +292,7 @@ class CloudflareStorage(MemoryStorage):
                 stored_content = f"[R2 Content: {r2_key}]"  # Placeholder in D1
             
             # Store vector in Vectorize
-            vector_id = f"mem_{memory.content_hash}"
+            vector_id = memory.content_hash
             vector_metadata = {
                 "content_hash": memory.content_hash,
                 "memory_type": memory.memory_type or "standard",
