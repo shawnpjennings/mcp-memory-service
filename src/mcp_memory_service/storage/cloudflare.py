@@ -458,7 +458,7 @@ class CloudflareStorage(MemoryStorage):
                 if memory:
                     query_result = MemoryQueryResult(
                         memory=memory,
-                        similarity_score=match.get("score", 0.0)
+                        relevance_score=match.get("score", 0.0)
                     )
                     results.append(query_result)
             
