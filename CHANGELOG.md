@@ -4,6 +4,32 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.13.7] - 2025-09-20
+
+### 🐛 **Critical Bug Fixes**
+
+#### Cloudflare Vectorize ID Length Issue Fixed
+- **Fixed critical bug**: Resolved Cloudflare Vectorize vector ID length limit error
+  - **Root Cause**: CloudflareStorage was using `"mem_" + content_hash` format for vector IDs (68 characters)
+  - **Cloudflare Limit**: Vectorize has a 64-byte maximum ID length restriction
+  - **Solution**: Removed "mem_" prefix, now using `content_hash` directly (64 characters)
+  - **Impact**: **Enables proper bidirectional sync** between multiple machines using Cloudflare backend
+  - **Error Fixed**: `"id too long; max is 64 bytes, got 68 bytes"` when storing memories
+- **Affects**: All users using Cloudflare backend for memory storage
+- **Backward Compatibility**: ⚠️ **Breaking change** - existing Cloudflare vector IDs will have different format
+- **Migration**: Users with existing Cloudflare deployments may need to re-import memories
+- **Benefits**:
+  - ✅ Cloudflare backend now works reliably for memory storage
+  - ✅ Multi-machine sync scenarios (e.g., replacing failed servers) now supported
+  - ✅ Consistent vector ID format aligns with Cloudflare specifications
+- **Files Modified**: `src/mcp_memory_service/storage/cloudflare.py:295`
+
+#### Multi-Machine Sync Capability
+- **New capability**: Cloudflare can now serve as central memory hub for multiple machines
+- **Use case**: Replacement for failed centralized servers (e.g., narrowbox failures)
+- **Implementation**: Dual storage strategy with Cloudflare primary + local sqlite_vec backup
+- **Tested**: Bidirectional sync verified between macOS machines using Cloudflare D1 + Vectorize
+
 ## [6.13.6] - 2025-09-16
 
 ### 📚 **Documentation**
