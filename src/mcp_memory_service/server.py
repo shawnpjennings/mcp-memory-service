@@ -454,6 +454,21 @@ class MemoryServer:
                     storage_module = importlib.import_module('mcp_memory_service.storage.sqlite_vec')
                     SqliteVecMemoryStorage = storage_module.SqliteVecMemoryStorage
                     self.storage = SqliteVecMemoryStorage(SQLITE_VEC_PATH)
+            elif STORAGE_BACKEND == 'cloudflare':
+                # Initialize Cloudflare storage
+                from .storage.cloudflare import CloudflareStorage
+                self.storage = CloudflareStorage(
+                    api_token=CLOUDFLARE_API_TOKEN,
+                    account_id=CLOUDFLARE_ACCOUNT_ID,
+                    vectorize_index=CLOUDFLARE_VECTORIZE_INDEX,
+                    d1_database_id=CLOUDFLARE_D1_DATABASE_ID,
+                    r2_bucket=CLOUDFLARE_R2_BUCKET,
+                    embedding_model=CLOUDFLARE_EMBEDDING_MODEL,
+                    large_content_threshold=CLOUDFLARE_LARGE_CONTENT_THRESHOLD,
+                    max_retries=CLOUDFLARE_MAX_RETRIES,
+                    base_delay=CLOUDFLARE_BASE_DELAY
+                )
+                logger.info(f"Eager init - using Cloudflare storage with Vectorize index: {CLOUDFLARE_VECTORIZE_INDEX}")
             else:
                 # Initialize ChromaDB with preload_model=True for caching
                 from .storage.chroma import ChromaMemoryStorage
@@ -3391,7 +3406,49 @@ Memories Archived: {report.memories_archived}"""
                             "error": str(e),
                             "backend": "sqlite-vec" 
                         }
-            
+
+            elif storage_type == "CloudflareStorage":
+                # Cloudflare storage validation
+                try:
+                    # Check if storage is properly initialized
+                    if not hasattr(storage, 'client') or storage.client is None:
+                        is_valid = False
+                        message = "Cloudflare storage client is not initialized"
+                        stats = {
+                            "status": "error",
+                            "error": "Cloudflare storage client is not initialized",
+                            "backend": "cloudflare"
+                        }
+                    else:
+                        # Get storage stats
+                        storage_stats = await storage.get_stats()
+
+                        # Collect basic health info
+                        stats = {
+                            "status": "healthy",
+                            "backend": "cloudflare",
+                            "total_memories": storage_stats.get("total_memories", 0),
+                            "vectorize_index": storage.vectorize_index,
+                            "d1_database_id": storage.d1_database_id,
+                            "r2_bucket": storage.r2_bucket,
+                            "embedding_model": storage.embedding_model
+                        }
+
+                        # Add additional stats if available
+                        stats.update(storage_stats)
+
+                        is_valid = True
+                        message = "Cloudflare storage validation successful"
+
+                except Exception as e:
+                    is_valid = False
+                    message = f"Cloudflare storage validation error: {str(e)}"
+                    stats = {
+                        "status": "error",
+                        "error": str(e),
+                        "backend": "cloudflare"
+                    }
+
             elif hasattr(storage, 'collection'):
                 # Standard ChromaDB validation
                 if storage.collection is None:

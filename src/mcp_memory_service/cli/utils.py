@@ -27,7 +27,7 @@ async def get_storage(backend: Optional[str] = None) -> MemoryStorage:
     Get storage backend for CLI operations.
     
     Args:
-        backend: Storage backend name ('sqlite_vec' or 'chromadb')
+        backend: Storage backend name ('sqlite_vec', 'chromadb', or 'cloudflare')
         
     Returns:
         Initialized storage backend
@@ -48,6 +48,28 @@ async def get_storage(backend: Optional[str] = None) -> MemoryStorage:
         from ..storage.chroma import ChromaMemoryStorage
         from ..config import CHROMA_PATH
         storage = ChromaMemoryStorage(CHROMA_PATH)
+        await storage.initialize()
+        return storage
+    elif backend == 'cloudflare':
+        from ..storage.cloudflare import CloudflareStorage
+        from ..config import (
+            CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID,
+            CLOUDFLARE_VECTORIZE_INDEX, CLOUDFLARE_D1_DATABASE_ID,
+            CLOUDFLARE_R2_BUCKET, CLOUDFLARE_EMBEDDING_MODEL,
+            CLOUDFLARE_LARGE_CONTENT_THRESHOLD, CLOUDFLARE_MAX_RETRIES,
+            CLOUDFLARE_BASE_DELAY
+        )
+        storage = CloudflareStorage(
+            api_token=CLOUDFLARE_API_TOKEN,
+            account_id=CLOUDFLARE_ACCOUNT_ID,
+            vectorize_index=CLOUDFLARE_VECTORIZE_INDEX,
+            d1_database_id=CLOUDFLARE_D1_DATABASE_ID,
+            r2_bucket=CLOUDFLARE_R2_BUCKET,
+            embedding_model=CLOUDFLARE_EMBEDDING_MODEL,
+            large_content_threshold=CLOUDFLARE_LARGE_CONTENT_THRESHOLD,
+            max_retries=CLOUDFLARE_MAX_RETRIES,
+            base_delay=CLOUDFLARE_BASE_DELAY
+        )
         await storage.initialize()
         return storage
     else:
