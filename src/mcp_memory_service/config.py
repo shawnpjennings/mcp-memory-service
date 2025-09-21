@@ -16,7 +16,7 @@
 MCP Memory Service Configuration
 
 Environment Variables:
-- MCP_MEMORY_STORAGE_BACKEND: Storage backend ('sqlite_vec' or 'chromadb')
+- MCP_MEMORY_STORAGE_BACKEND: Storage backend ('sqlite_vec', 'chromadb', or 'cloudflare')
 - MCP_MEMORY_CHROMA_PATH: Local ChromaDB storage directory
 - MCP_MEMORY_CHROMADB_HOST: Remote ChromaDB server hostname (enables remote mode)
 - MCP_MEMORY_CHROMADB_PORT: Remote ChromaDB server port (default: 8000)

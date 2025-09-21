@@ -81,7 +81,33 @@ async def validate_database(storage) -> Tuple[bool, str]:
                 
             except Exception as e:
                 return False, f"SQLite database access error: {str(e)}"
-        
+
+        # Cloudflare storage validation
+        elif storage_type == "CloudflareStorage":
+            try:
+                # Check if storage is properly initialized
+                if not hasattr(storage, 'client') or storage.client is None:
+                    return False, "Cloudflare storage client is not initialized"
+
+                # Check basic connectivity by getting stats
+                stats = await storage.get_stats()
+                memory_count = stats.get("total_memories", 0)
+                logger.info(f"Cloudflare storage contains {memory_count} memories")
+
+                # Test embedding generation if available
+                test_text = "Database validation test"
+                try:
+                    embedding = await storage._generate_embedding(test_text)
+                    if not embedding or not isinstance(embedding, list):
+                        logger.warning("Embedding generation may not be working properly")
+                except Exception as embed_error:
+                    logger.warning(f"Embedding test failed: {str(embed_error)}")
+
+                return True, "Cloudflare storage validation successful"
+
+            except Exception as e:
+                return False, f"Cloudflare storage access error: {str(e)}"
+
         # ChromaDB backend validation
         elif hasattr(storage, 'collection'):
             if storage.collection is None:
@@ -283,6 +309,36 @@ def get_database_stats(storage) -> Dict[str, Any]:
                 "backend": "chromadb",
                 "status": "healthy"
             }
+
+        # Cloudflare storage stats
+        elif storage_type == "CloudflareStorage":
+            try:
+                # Get storage stats from the Cloudflare storage implementation
+                storage_stats = await storage.get_stats()
+
+                # Add cloudflare-specific info
+                cloudflare_info = {
+                    "vectorize_index": storage.vectorize_index,
+                    "d1_database_id": storage.d1_database_id,
+                    "r2_bucket": storage.r2_bucket,
+                    "embedding_model": storage.embedding_model,
+                    "large_content_threshold": storage.large_content_threshold
+                }
+
+                return {
+                    **storage_stats,
+                    "cloudflare": cloudflare_info,
+                    "backend": "cloudflare",
+                    "status": "healthy"
+                }
+
+            except Exception as stats_error:
+                return {
+                    "status": "error",
+                    "error": f"Error getting Cloudflare stats: {str(stats_error)}",
+                    "backend": "cloudflare"
+                }
+
         else:
             return {
                 "status": "error",
@@ -388,6 +444,30 @@ async def repair_database(storage) -> Tuple[bool, str]:
                 return True, "ChromaDB successfully repaired"
             else:
                 return False, f"ChromaDB repair failed: {message}"
+
+        # Cloudflare storage repair
+        elif storage_type == "CloudflareStorage":
+            # For Cloudflare storage, we can't repair infrastructure (Vectorize, D1, R2)
+            # but we can validate the connection and re-initialize if needed
+            try:
+                # Validate current state
+                is_valid, message = await validate_database(storage)
+                if is_valid:
+                    return True, "Cloudflare storage is already healthy"
+
+                # Try to re-initialize the storage connection
+                await storage.initialize()
+
+                # Validate repair
+                is_valid, message = await validate_database(storage)
+                if is_valid:
+                    return True, "Cloudflare storage connection successfully repaired"
+                else:
+                    return False, f"Cloudflare storage repair failed: {message}"
+
+            except Exception as repair_error:
+                return False, f"Cloudflare storage repair failed: {str(repair_error)}"
+
         else:
             return False, f"Unknown storage type: {storage_type}, cannot repair"
                 

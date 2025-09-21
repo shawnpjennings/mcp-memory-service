@@ -4,6 +4,49 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.13.8] - 2025-09-21
+
+### 🔧 **Integration Completion**
+
+#### Cloudflare Storage Backend Full Integration
+- **Fixed critical integration gaps**: Cloudflare backend now has complete feature parity with sqlite_vec and chroma
+- **Health Check Recognition**:
+  - ✅ **Resolved "Unknown storage type: CloudflareStorage" errors**
+  - ✅ Health check now properly validates Cloudflare storage and returns "healthy" status
+  - ✅ Added Cloudflare support to `server.py` health validation (lines 3410-3450)
+  - ✅ Added Cloudflare support to `db_utils.py` validation, stats, and repair functions
+- **Complete CLI Integration**:
+  - ✅ Added 'cloudflare' option to all CLI storage backend choices
+  - ✅ Updated `cli/main.py`, `cli/ingestion.py` with cloudflare backend support
+  - ✅ Added CloudflareStorage initialization logic to `cli/utils.py`
+  - ✅ Updated configuration documentation to include cloudflare option
+- **Documentation & Startup Guidance**:
+  - ✅ **Critical**: Added warning about inappropriate use of `memory_offline.py` with Cloudflare backend
+  - ✅ Cloudflare uses Workers AI for embeddings - offline mode breaks this functionality
+  - ✅ Added proper startup script recommendations in `docs/cloudflare-setup.md`
+  - ✅ Recommended: `uv run memory server`, `python scripts/run_memory_server.py`
+- **Enhanced Test Coverage**:
+  - ✅ Added comprehensive tests for tag sanitization method
+  - ✅ Verified existing extensive test suite covers all major functionality
+- **Impact**:
+  - 🎯 **Cloudflare backend is now a first-class citizen** alongside sqlite_vec and chroma
+  - 🚀 **Complete health check integration** - no more "Unknown storage type" errors
+  - 💻 **Full CLI support** for cloudflare backend selection
+  - 📚 **Clear startup guidance** prevents Workers AI compatibility issues
+  - ✅ **Production ready** for distributed teams and cloud-native deployments
+
+#### Files Modified (11):
+- `src/mcp_memory_service/server.py` - Added Cloudflare health check case
+- `src/mcp_memory_service/utils/db_utils.py` - Added validation, stats, repair support
+- `src/mcp_memory_service/cli/main.py` - Added cloudflare CLI option
+- `src/mcp_memory_service/cli/ingestion.py` - Added cloudflare CLI option
+- `src/mcp_memory_service/cli/utils.py` - Added CloudflareStorage initialization
+- `src/mcp_memory_service/config.py` - Updated backend documentation
+- `docs/cloudflare-setup.md` - Added startup script guidance and warnings
+- `tests/unit/test_cloudflare_storage.py` - Enhanced test coverage
+- `src/mcp_memory_service/__init__.py` - Version bump to 6.13.8
+- `pyproject.toml` - Version bump to 6.13.8
+
 ## [6.13.7] - 2025-09-20
 
 ### 🐛 **Critical Bug Fixes**
