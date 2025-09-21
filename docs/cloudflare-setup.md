@@ -457,7 +457,7 @@ curl http://localhost:8000/api/stats
 │   Machine A     │    │   Machine B     │
 │                 │    │                 │
 │ Claude Desktop  │    │ Claude Desktop  │
-│      ↕         │    │      ↕         │
+│      ↕          │    │       ↕         │
 │ sqlite_vec      │    │ sqlite_vec      │
 │   (backup)      │    │   (backup)      │
 └─────────┬───────┘    └─────────┬───────┘
