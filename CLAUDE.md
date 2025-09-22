@@ -124,11 +124,25 @@ python validate_config.py --fix              # Auto-fix common issues (future)
 - **Cache Issues**: Restart Claude Code to refresh MCP connections
 - **Environment Confusion**: Check precedence: Global > .env > shell variables
 
+**Cloudflare Backend Troubleshooting:**
+- **Enhanced Initialization Logging**: Look for these indicators in Claude Desktop logs:
+  - 🚀 SERVER INIT: Main server initialization flow
+  - ☁️ Cloudflare-specific initialization steps
+  - ✅ Success markers for each phase
+  - ❌ Error details with full tracebacks
+  - 🔍 Storage type verification (confirms final backend)
+- **Common Issues**:
+  - Silent fallback to SQLite-vec: Check logs for eager initialization timeout or API errors
+  - Configuration validation: Environment variables are logged during startup
+  - Network timeouts: Enhanced error messages show specific Cloudflare API failures
+
 **Emergency Debugging:**
 ```bash
 /mcp                                         # Check active MCP servers in Claude
 python validate_config.py                   # Run configuration validation
 rm -f .mcp.json                             # Remove conflicting local MCP config
+python debug_server_initialization.py       # Test initialization flows (v6.15.1+)
+tail -50 ~/Library/Logs/Claude/mcp-server-memory.log | grep -E "(🚀|☁️|✅|❌)" # View enhanced logs
 ```
 
 > **For detailed troubleshooting, architecture, and deployment guides, retrieve memories tagged with `claude-code-reference` or visit the project wiki.**

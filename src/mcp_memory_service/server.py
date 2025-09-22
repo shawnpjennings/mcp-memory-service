@@ -413,7 +413,18 @@ class MemoryServer:
     async def _initialize_storage_with_timeout(self):
         """Initialize storage with timeout and caching optimization."""
         try:
-            logger.info(f"Attempting eager {STORAGE_BACKEND} storage initialization...")
+            logger.info(f"🚀 EAGER INIT: Starting {STORAGE_BACKEND} storage initialization...")
+            logger.info(f"🔧 EAGER INIT: Environment check - STORAGE_BACKEND={STORAGE_BACKEND}")
+            
+            # Log all Cloudflare config values for debugging
+            if STORAGE_BACKEND == 'cloudflare':
+                logger.info(f"🔧 EAGER INIT: Cloudflare config validation:")
+                logger.info(f"   API_TOKEN: {'SET' if CLOUDFLARE_API_TOKEN else 'NOT SET'}")
+                logger.info(f"   ACCOUNT_ID: {CLOUDFLARE_ACCOUNT_ID}")
+                logger.info(f"   VECTORIZE_INDEX: {CLOUDFLARE_VECTORIZE_INDEX}")
+                logger.info(f"   D1_DATABASE_ID: {CLOUDFLARE_D1_DATABASE_ID}")
+                logger.info(f"   R2_BUCKET: {CLOUDFLARE_R2_BUCKET}")
+                logger.info(f"   EMBEDDING_MODEL: {CLOUDFLARE_EMBEDDING_MODEL}")
             
             if STORAGE_BACKEND == 'sqlite_vec':
                 # Check for multi-client coordination mode
@@ -421,13 +432,13 @@ class MemoryServer:
                 coordinator = ServerCoordinator()
                 coordination_mode = await coordinator.detect_mode()
                 
-                logger.info(f"Eager init - detected coordination mode: {coordination_mode}")
+                logger.info(f"🔧 EAGER INIT: SQLite-vec - detected coordination mode: {coordination_mode}")
                 
                 if coordination_mode == "http_client":
                     # Use HTTP client to connect to existing server
                     from .storage.http_client import HTTPClientStorage
                     self.storage = HTTPClientStorage()
-                    logger.info(f"Eager init - using HTTP client storage")
+                    logger.info(f"✅ EAGER INIT: Using HTTP client storage")
                 elif coordination_mode == "http_server":
                     # Try to auto-start HTTP server for coordination
                     from .utils.http_server_manager import auto_start_http_server_if_needed
@@ -438,7 +449,7 @@ class MemoryServer:
                         await asyncio.sleep(2)
                         from .storage.http_client import HTTPClientStorage
                         self.storage = HTTPClientStorage()
-                        logger.info(f"Eager init - started HTTP server and using HTTP client storage")
+                        logger.info(f"✅ EAGER INIT: Started HTTP server and using HTTP client storage")
                     else:
                         # Fall back to direct SQLite-vec storage
                         from . import storage
@@ -446,7 +457,7 @@ class MemoryServer:
                         storage_module = importlib.import_module('mcp_memory_service.storage.sqlite_vec')
                         SqliteVecMemoryStorage = storage_module.SqliteVecMemoryStorage
                         self.storage = SqliteVecMemoryStorage(SQLITE_VEC_PATH)
-                        logger.info(f"Eager init - HTTP server auto-start failed, using direct storage")
+                        logger.info(f"✅ EAGER INIT: HTTP server auto-start failed, using direct SQLite-vec storage")
                 else:
                     # Import sqlite-vec storage module (supports dynamic class replacement)
                     from . import storage
@@ -454,9 +465,12 @@ class MemoryServer:
                     storage_module = importlib.import_module('mcp_memory_service.storage.sqlite_vec')
                     SqliteVecMemoryStorage = storage_module.SqliteVecMemoryStorage
                     self.storage = SqliteVecMemoryStorage(SQLITE_VEC_PATH)
+                    logger.info(f"✅ EAGER INIT: Using direct SQLite-vec storage at {SQLITE_VEC_PATH}")
             elif STORAGE_BACKEND == 'cloudflare':
                 # Initialize Cloudflare storage
+                logger.info(f"☁️  EAGER INIT: Importing CloudflareStorage...")
                 from .storage.cloudflare import CloudflareStorage
+                logger.info(f"☁️  EAGER INIT: Creating CloudflareStorage instance...")
                 self.storage = CloudflareStorage(
                     api_token=CLOUDFLARE_API_TOKEN,
                     account_id=CLOUDFLARE_ACCOUNT_ID,
@@ -468,23 +482,33 @@ class MemoryServer:
                     max_retries=CLOUDFLARE_MAX_RETRIES,
                     base_delay=CLOUDFLARE_BASE_DELAY
                 )
-                logger.info(f"Eager init - using Cloudflare storage with Vectorize index: {CLOUDFLARE_VECTORIZE_INDEX}")
+                logger.info(f"✅ EAGER INIT: CloudflareStorage instance created with index: {CLOUDFLARE_VECTORIZE_INDEX}")
             else:
                 # Initialize ChromaDB with preload_model=True for caching
+                logger.info(f"🗄️  EAGER INIT: Using ChromaDB storage...")
                 from .storage.chroma import ChromaMemoryStorage
                 self.storage = ChromaMemoryStorage(CHROMA_PATH, preload_model=True)
+                logger.info(f"✅ EAGER INIT: ChromaDB storage created at {CHROMA_PATH}")
             
             # Initialize the storage backend
+            logger.info(f"🔧 EAGER INIT: Calling storage.initialize()...")
             await self.storage.initialize()
+            logger.info(f"✅ EAGER INIT: storage.initialize() completed successfully")
+            
             self._storage_initialized = True
-            logger.info(f"Eager {STORAGE_BACKEND} storage initialization successful")
+            logger.info(f"🎉 EAGER INIT: {STORAGE_BACKEND} storage initialization successful")
+            
+            # Verify storage type
+            storage_type = self.storage.__class__.__name__
+            logger.info(f"🔍 EAGER INIT: Final storage type verification: {storage_type}")
             
             # Initialize consolidation system after storage is ready
             await self._initialize_consolidation()
             
             return True
         except Exception as e:
-            logger.error(f"Eager storage initialization failed: {str(e)}")
+            logger.error(f"❌ EAGER INIT: Storage initialization failed: {str(e)}")
+            logger.error(f"📋 EAGER INIT: Full traceback:")
             logger.error(traceback.format_exc())
             return False
 
@@ -492,7 +516,18 @@ class MemoryServer:
         """Lazily initialize storage backend when needed."""
         if not self._storage_initialized:
             try:
-                logger.info(f"Initializing {STORAGE_BACKEND} storage backend...")
+                logger.info(f"🔄 LAZY INIT: Starting {STORAGE_BACKEND} storage initialization...")
+                logger.info(f"🔧 LAZY INIT: Environment check - STORAGE_BACKEND={STORAGE_BACKEND}")
+                
+                # Log all Cloudflare config values for debugging
+                if STORAGE_BACKEND == 'cloudflare':
+                    logger.info(f"🔧 LAZY INIT: Cloudflare config validation:")
+                    logger.info(f"   API_TOKEN: {'SET' if CLOUDFLARE_API_TOKEN else 'NOT SET'}")
+                    logger.info(f"   ACCOUNT_ID: {CLOUDFLARE_ACCOUNT_ID}")
+                    logger.info(f"   VECTORIZE_INDEX: {CLOUDFLARE_VECTORIZE_INDEX}")
+                    logger.info(f"   D1_DATABASE_ID: {CLOUDFLARE_D1_DATABASE_ID}")
+                    logger.info(f"   R2_BUCKET: {CLOUDFLARE_R2_BUCKET}")
+                    logger.info(f"   EMBEDDING_MODEL: {CLOUDFLARE_EMBEDDING_MODEL}")
                 
                 if STORAGE_BACKEND == 'sqlite_vec':
                     # Check for multi-client coordination mode
@@ -500,13 +535,13 @@ class MemoryServer:
                     coordinator = ServerCoordinator()
                     coordination_mode = await coordinator.detect_mode()
                     
-                    logger.info(f"Detected coordination mode: {coordination_mode}")
+                    logger.info(f"🔧 LAZY INIT: SQLite-vec - detected coordination mode: {coordination_mode}")
                     
                     if coordination_mode == "http_client":
                         # Use HTTP client to connect to existing server
                         from .storage.http_client import HTTPClientStorage
                         self.storage = HTTPClientStorage()
-                        logger.info(f"Using HTTP client storage to connect to existing server")
+                        logger.info(f"✅ LAZY INIT: Using HTTP client storage")
                     elif coordination_mode == "http_server":
                         # Try to auto-start HTTP server for coordination
                         from .utils.http_server_manager import auto_start_http_server_if_needed
@@ -517,24 +552,26 @@ class MemoryServer:
                             await asyncio.sleep(2)
                             from .storage.http_client import HTTPClientStorage
                             self.storage = HTTPClientStorage()
-                            logger.info(f"Started HTTP server and using HTTP client storage")
+                            logger.info(f"✅ LAZY INIT: Started HTTP server and using HTTP client storage")
                         else:
                             # Fall back to direct SQLite-vec storage
                             import importlib
                             storage_module = importlib.import_module('mcp_memory_service.storage.sqlite_vec')
                             SqliteVecMemoryStorage = storage_module.SqliteVecMemoryStorage
                             self.storage = SqliteVecMemoryStorage(SQLITE_VEC_PATH)
-                            logger.info(f"HTTP server auto-start failed, using direct SQLite-vec storage at: {SQLITE_VEC_PATH}")
+                            logger.info(f"✅ LAZY INIT: HTTP server auto-start failed, using direct SQLite-vec storage at: {SQLITE_VEC_PATH}")
                     else:
                         # Use direct SQLite-vec storage (with WAL mode for concurrent access)
                         import importlib
                         storage_module = importlib.import_module('mcp_memory_service.storage.sqlite_vec')
                         SqliteVecMemoryStorage = storage_module.SqliteVecMemoryStorage
                         self.storage = SqliteVecMemoryStorage(SQLITE_VEC_PATH)
-                        logger.info(f"Created SQLite-vec storage at: {SQLITE_VEC_PATH}")
+                        logger.info(f"✅ LAZY INIT: Created SQLite-vec storage at: {SQLITE_VEC_PATH}")
                 elif STORAGE_BACKEND == 'cloudflare':
                     # Cloudflare backend using Vectorize, D1, and R2
+                    logger.info(f"☁️  LAZY INIT: Importing CloudflareStorage...")
                     from .storage.cloudflare import CloudflareStorage
+                    logger.info(f"☁️  LAZY INIT: Creating CloudflareStorage instance...")
                     self.storage = CloudflareStorage(
                         api_token=CLOUDFLARE_API_TOKEN,
                         account_id=CLOUDFLARE_ACCOUNT_ID,
@@ -546,7 +583,7 @@ class MemoryServer:
                         max_retries=CLOUDFLARE_MAX_RETRIES,
                         base_delay=CLOUDFLARE_BASE_DELAY
                     )
-                    logger.info(f"Created Cloudflare storage with Vectorize index: {CLOUDFLARE_VECTORIZE_INDEX}")
+                    logger.info(f"✅ LAZY INIT: Created Cloudflare storage with Vectorize index: {CLOUDFLARE_VECTORIZE_INDEX}")
                 else:
                     # ChromaDB backend (deprecated) - Check for migration
                     logger.warning("=" * 70)
@@ -573,27 +610,32 @@ class MemoryServer:
                     
                     from .storage.chroma import ChromaMemoryStorage
                     self.storage = ChromaMemoryStorage(CHROMA_PATH, preload_model=False)
-                    logger.info(f"Created ChromaDB storage at: {CHROMA_PATH}")
+                    logger.info(f"✅ LAZY INIT: Created ChromaDB storage at: {CHROMA_PATH}")
                 
                 # Initialize the storage backend
+                logger.info(f"🔧 LAZY INIT: Calling storage.initialize()...")
                 await self.storage.initialize()
+                logger.info(f"✅ LAZY INIT: storage.initialize() completed successfully")
                 
                 # Verify the storage is properly initialized
                 if hasattr(self.storage, 'is_initialized') and not self.storage.is_initialized():
                     # Get detailed status for debugging
                     if hasattr(self.storage, 'get_initialization_status'):
                         status = self.storage.get_initialization_status()
-                        logger.error(f"Storage initialization incomplete: {status}")
+                        logger.error(f"❌ LAZY INIT: Storage initialization incomplete: {status}")
                     raise RuntimeError("Storage initialization incomplete")
                 
                 self._storage_initialized = True
-                logger.info(f"Storage backend ({STORAGE_BACKEND}) initialization successful")
+                storage_type = self.storage.__class__.__name__
+                logger.info(f"🎉 LAZY INIT: Storage backend ({STORAGE_BACKEND}) initialization successful")
+                logger.info(f"🔍 LAZY INIT: Final storage type verification: {storage_type}")
                 
                 # Initialize consolidation system after storage is ready
                 await self._initialize_consolidation()
                 
             except Exception as e:
-                logger.error(f"Failed to initialize {STORAGE_BACKEND} storage: {str(e)}")
+                logger.error(f"❌ LAZY INIT: Failed to initialize {STORAGE_BACKEND} storage: {str(e)}")
+                logger.error(f"📋 LAZY INIT: Full traceback:")
                 logger.error(traceback.format_exc())
                 # Set storage to None to indicate failure
                 self.storage = None
@@ -605,7 +647,7 @@ class MemoryServer:
         """Async initialization method with eager storage initialization and timeout."""
         try:
             # Run any async initialization tasks here
-            logger.info("Starting async initialization...")
+            logger.info("🚀 SERVER INIT: Starting async initialization...")
             
             # Print system diagnostics only for LM Studio (avoid JSON parsing errors in Claude Desktop)
             if MCP_CLIENT == 'lm_studio':
@@ -616,9 +658,13 @@ class MemoryServer:
                 print(f"Accelerator: {self.system_info.accelerator}", file=sys.stdout, flush=True)
                 print(f"Python: {platform.python_version()}", file=sys.stdout, flush=True)
             
+            # Log environment info
+            logger.info(f"🔧 SERVER INIT: Environment - STORAGE_BACKEND={STORAGE_BACKEND}")
+            
             # Attempt eager storage initialization with timeout
             # Get dynamic timeout based on system and dependency status
             timeout_seconds = get_recommended_timeout()
+            logger.info(f"⏱️  SERVER INIT: Attempting eager storage initialization (timeout: {timeout_seconds}s)...")
             if MCP_CLIENT == 'lm_studio':
                 print(f"Attempting eager storage initialization (timeout: {timeout_seconds}s)...", file=sys.stdout, flush=True)
             try:
@@ -627,22 +673,32 @@ class MemoryServer:
                 if success:
                     if MCP_CLIENT == 'lm_studio':
                         print("[OK] Eager storage initialization successful", file=sys.stdout, flush=True)
-                    logger.info("Eager storage initialization completed successfully")
+                    logger.info("✅ SERVER INIT: Eager storage initialization completed successfully")
+                    
+                    # Verify storage type after successful eager init
+                    if hasattr(self, 'storage') and self.storage:
+                        storage_type = self.storage.__class__.__name__
+                        logger.info(f"🔍 SERVER INIT: Eager init resulted in storage type: {storage_type}")
                 else:
                     if MCP_CLIENT == 'lm_studio':
                         print("[WARNING] Eager storage initialization failed, will use lazy loading", file=sys.stdout, flush=True)
-                    logger.warning("Eager initialization failed, falling back to lazy loading")
+                    logger.warning("⚠️  SERVER INIT: Eager initialization failed, falling back to lazy loading")
+                    # Reset state for lazy loading
+                    self.storage = None
+                    self._storage_initialized = False
             except asyncio.TimeoutError:
                 if MCP_CLIENT == 'lm_studio':
                     print("[TIMEOUT] Eager storage initialization timed out, will use lazy loading", file=sys.stdout, flush=True)
-                logger.warning("Storage initialization timed out, falling back to lazy loading")
+                logger.warning(f"⏱️  SERVER INIT: Storage initialization timed out after {timeout_seconds}s, falling back to lazy loading")
                 # Reset state for lazy loading
                 self.storage = None
                 self._storage_initialized = False
             except Exception as e:
                 if MCP_CLIENT == 'lm_studio':
                     print(f"[WARNING] Eager initialization error: {str(e)}, will use lazy loading", file=sys.stdout, flush=True)
-                logger.warning(f"Eager initialization error: {str(e)}, falling back to lazy loading")
+                logger.warning(f"⚠️  SERVER INIT: Eager initialization error: {str(e)}, falling back to lazy loading")
+                logger.warning(f"📋 SERVER INIT: Eager init error traceback:")
+                logger.warning(traceback.format_exc())
                 # Reset state for lazy loading
                 self.storage = None
                 self._storage_initialized = False
@@ -651,9 +707,11 @@ class MemoryServer:
             if MCP_CLIENT == 'lm_studio':
                 print("MCP Memory Service initialization completed", file=sys.stdout, flush=True)
             
+            logger.info("🎉 SERVER INIT: Async initialization completed")
             return True
         except Exception as e:
-            logger.error(f"Async initialization error: {str(e)}")
+            logger.error(f"❌ SERVER INIT: Async initialization error: {str(e)}")
+            logger.error(f"📋 SERVER INIT: Full traceback:")
             logger.error(traceback.format_exc())
             # Add explicit console error output for Smithery to see
             print(f"Initialization error: {str(e)}", file=sys.stderr, flush=True)

@@ -4,6 +4,34 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.15.1] - 2025-09-22
+
+### 🔧 **Enhanced Cloudflare Backend Initialization & Diagnostics**
+
+#### Cloudflare Backend Issue Resolution
+- **Fixed silent fallback issue**: Resolved Cloudflare backend falling back to SQLite-vec during MCP startup
+  - **Root cause identified**: Silent failures in eager initialization phase were not properly logged
+  - **Enhanced error reporting**: Added comprehensive logging with visual indicators for all initialization phases
+  - **Improved timeout handling**: Better error messages when Cloudflare initialization times out
+- **Enhanced initialization logging**: Added detailed logging for both eager and lazy initialization paths
+  - **Phase indicators**: 🚀 SERVER INIT, ☁️ Cloudflare-specific, ✅ Success markers, ❌ Error indicators
+  - **Configuration validation**: Logs all Cloudflare environment variables for troubleshooting
+  - **Storage type verification**: Confirms final storage backend type after initialization
+- **Diagnostic improvements**: Created comprehensive diagnostic tools for Cloudflare backend issues
+  - **Enhanced diagnostic script**: `debug_server_initialization.py` for testing initialization flows
+  - **MCP environment testing**: `test_mcp_environment.py` for testing Claude Desktop integration
+  - **Fixed test syntax errors**: Corrected f-string and async function issues in test files
+
+#### Technical Improvements
+- **Fixed `db_utils.py` async issue**: Changed `get_database_stats()` to async function to support Cloudflare storage
+- **Enhanced error tracebacks**: Full exception details now logged for initialization failures
+- **Better fallback documentation**: Clear distinction between eager vs lazy initialization behaviors
+
+#### Troubleshooting Benefits
+- **Faster issue diagnosis**: Clear visual indicators help identify where initialization fails
+- **Better error messages**: Specific error details for common Cloudflare setup issues
+- **Proactive debugging**: Enhanced logging appears in Claude Desktop MCP logs for easier troubleshooting
+
 ## [6.15.0] - 2025-09-22
 
 ### 🗂️ **Scripts Directory Reorganization & Professional Tooling**
