@@ -166,7 +166,7 @@ async def validate_database(storage) -> Tuple[bool, str]:
         logger.error(f"Database validation failed: {str(e)}")
         return False, f"Database validation failed: {str(e)}"
 
-def get_database_stats(storage) -> Dict[str, Any]:
+async def get_database_stats(storage) -> Dict[str, Any]:
     """Get detailed database statistics with proper error handling."""
     try:
         # Check if storage is properly initialized
