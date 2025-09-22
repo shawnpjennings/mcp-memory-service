@@ -4,6 +4,70 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.15.0] - 2025-09-22
+
+### 🗂️ **Scripts Directory Reorganization & Professional Tooling**
+
+#### Major Reorganization
+- **Complete Scripts Restructuring**:
+  - ✅ **Organized 62 loose scripts** into 12 logical categories for professional navigation
+  - ✅ **Created systematic directory structure** with clear functional grouping
+  - ✅ **Zero loose scripts remaining** in root directory - all properly categorized
+  - ✅ **Maintained full backward compatibility** - all scripts work exactly as before
+  - ✅ **Updated all documentation references** to reflect new paths
+
+#### New Directory Structure
+- **🔄 `sync/`** (4 scripts) - Backend synchronization utilities
+- **🛠️ `service/`** (5 scripts) - Service management and deployment
+- **✅ `validation/`** (7 scripts) - Configuration and system validation
+- **🗄️ `database/`** (4 scripts) - Database analysis and health monitoring
+- **🧹 `maintenance/`** (7 scripts) - Database cleanup and repair operations
+- **💾 `backup/`** (4 scripts) - Backup and restore operations
+- **🔄 `migration/`** (11 scripts) - Data migration and schema updates
+- **🏠 `installation/`** (8 scripts) - Setup and installation scripts
+- **🖥️ `server/`** (5 scripts) - Server runtime and operational scripts
+- **🧪 `testing/`** (15 scripts) - Test scripts and validation
+- **🔧 `utils/`** (7 scripts) - General utility scripts and wrappers
+- **🛠️ `development/`** (6 scripts) - Development tools and debugging utilities
+
+#### Enhanced Documentation
+- **✅ Complete README.md rewrite** with comprehensive script index and usage examples
+- **✅ Quick reference guide** for essential daily operations
+- **✅ Detailed directory explanations** with purpose and key features
+- **✅ Safety guidelines** and execution best practices
+- **✅ Common use case workflows** for setup, operations, troubleshooting, and migration
+- **✅ Integration documentation** linking to project wiki and guides
+
+#### User Experience Improvements
+- **🎯 Faster script discovery** - find tools by logical function instead of hunting through 62 files
+- **📚 Professional documentation** with tables, examples, and clear categorization
+- **🚀 Quick-start examples** for common operations and troubleshooting
+- **🛡️ Safety-first approach** with dry-run recommendations and backup guidelines
+- **🔗 Seamless integration** with existing CLAUDE.md, AGENTS.md, and documentation
+
+#### Maintainability Enhancements
+- **🏗️ Logical organization** makes adding new scripts intuitive
+- **📝 Clear naming conventions** and directory purposes
+- **🔄 Future-proof structure** that scales with project growth
+- **✅ Consistent documentation patterns** across all categories
+- **🧪 Verified functionality** - all critical scripts tested post-reorganization
+
+#### Files Updated (4):
+- **`scripts/README.md`** - COMPLETE REWRITE: Professional documentation with comprehensive index
+- **`CLAUDE.md`** - UPDATED: All script paths updated to new locations
+- **`AGENTS.md`** - UPDATED: Development workflow script references
+- **`CHANGELOG.md`** - UPDATED: Historical script references to new paths
+
+#### Impact
+- 🎯 **Transforms user experience** from cluttered file hunting to professional navigation
+- 🚀 **Enables faster development** with logical script organization
+- 💻 **Simplifies maintenance** with clear categorization and documentation
+- ✅ **Professional appearance** suitable for enterprise deployments
+- 🔄 **Supports scalable growth** with extensible directory structure
+- 🛡️ **Improves safety** with comprehensive usage guidelines and best practices
+
+This release transforms the scripts directory from a disorganized collection into a professional, enterprise-ready toolkit that significantly improves developer and user experience while maintaining full functionality.
+
 ## [6.14.0] - 2025-09-22
 
 ### 🛠️ **Operational Utilities & Backend Synchronization**
@@ -60,10 +124,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - 🔄 **Supports complex workflows** for distributed teams
 
 #### Files Added/Modified (8):
-- `scripts/sync_memory_backends.py` - NEW: Bidirectional sync engine
-- `scripts/claude_sync_commands.py` - NEW: CLI wrapper for sync operations
-- `scripts/memory_service_manager.sh` - NEW: Linux service manager
-- `scripts/validate_config.py` - NEW: Configuration validator
+- `scripts/sync/sync_memory_backends.py` - NEW: Bidirectional sync engine
+- `scripts/sync/claude_sync_commands.py` - NEW: CLI wrapper for sync operations
+- `scripts/service/memory_service_manager.sh` - NEW: Linux service manager
+- `scripts/validation/validate_config.py` - NEW: Configuration validator
 - `scripts/README.md` - UPDATED: Comprehensive utility documentation
 - `README.md` - UPDATED: Added troubleshooting references
 - `CLAUDE.md` - UPDATED: Added sync and validation commands
