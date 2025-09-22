@@ -4,6 +4,43 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.16.0] - 2025-09-22
+
+### 🔧 **Configuration Management & Backend Selection Fixes**
+
+#### Critical Configuration Issues Resolved
+- **Fixed Cloudflare backend fallback issue**: Resolved service falling back to SQLite-vec despite correct Cloudflare configuration
+  - **Root cause**: Configuration module wasn't loading `.env` file automatically
+  - **CLI override issue**: CLI default parameter was overriding environment variables
+  - **Solution**: Added automatic `.env` loading and fixed CLI parameter precedence
+- **Enhanced environment loading**: Added `load_dotenv()` to configuration initialization
+  - **Automatic detection**: Config module now automatically loads `.env` file when present
+  - **Backward compatibility**: Graceful fallback if python-dotenv not available
+  - **Logging**: Added confirmation logging when environment file is loaded
+- **Fixed CLI parameter precedence**: Changed CLI defaults to respect environment configuration
+  - **Server command**: Changed `--storage-backend` default from `'sqlite_vec'` to `None`
+  - **Environment priority**: Environment variables now take precedence over CLI defaults
+  - **Explicit overrides**: CLI parameters only override when explicitly provided
+
+#### Content Size Management Improvements
+- **Added Cloudflare content limits to context provider**: Enhanced memory management guidance
+  - **Content size warnings**: Added ~1500 character limit documentation
+  - **Embedding model constraints**: Documented `@cf/baai/bge-base-en-v1.5` strict input limits
+  - **Best practices**: Guidance for chunking large content and using document ingestion
+  - **Error recognition**: Help identifying "Failed to store vector" errors from size issues
+- **Enhanced troubleshooting**: Better error messages and debugging capabilities for configuration issues
+
+#### Technical Improvements
+- **Configuration validation**: Improved environment variable loading and validation
+- **Error handling**: Better error messages when storage backend initialization fails
+- **Documentation**: Updated context provider with Cloudflare-specific constraints and best practices
+
+#### Benefits for Users
+- **Seamless backend switching**: Cloudflare configuration now works reliably out of the box
+- **Fewer configuration errors**: Automatic environment loading reduces setup friction
+- **Better error diagnosis**: Clear guidance on content size limits and chunking strategies
+- **Improved reliability**: Configuration precedence issues eliminated
+
 ## [6.15.1] - 2025-09-22
 
 ### 🔧 **Enhanced Cloudflare Backend Initialization & Diagnostics**
