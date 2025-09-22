@@ -40,7 +40,7 @@ pytest tests/test_embeddings.py      # Embedding tests
 pytest --cov=mcp_memory_service tests/
 
 # Verify environment setup
-python scripts/verify_environment.py
+python scripts/validation/verify_environment.py
 
 # Check database health
 python scripts/database/db_health_check.py
@@ -99,18 +99,18 @@ src/mcp_memory_service/
 1. Define in `src/mcp_memory_service/config.py`
 2. Document in README.md and CLAUDE.md
 3. Add to Docker configurations in `tools/docker/`
-4. Update `scripts/verify_environment.py`
+4. Update `scripts/validation/verify_environment.py`
 
 ### Database Migrations
 ```bash
 # Check for needed migrations
-python scripts/migrations/verify_mcp_timestamps.py
+python scripts/migration/verify_mcp_timestamps.py
 
 # Migrate from ChromaDB to SQLite-vec
-python scripts/migrate_chroma_to_sqlite.py
+python scripts/migration/migrate_chroma_to_sqlite.py
 
 # Validate existing memories
-python scripts/validate_memories.py
+python scripts/validation/validate_memories.py
 ```
 
 ## Performance Considerations
