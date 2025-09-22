@@ -12,27 +12,32 @@ MCP Memory Service is a Model Context Protocol server providing semantic memory 
 
 ```bash
 # Setup & Development
-python install.py                    # Platform-aware installation
-uv run memory server                 # Start server (v6.3.0+ consolidated CLI)
-pytest tests/                       # Run tests
-python scripts/verify_environment.py # Check environment
-python scripts/validate_config.py    # Validate configuration
+python install.py                              # Platform-aware installation
+uv run memory server                           # Start server (v6.3.0+ consolidated CLI)
+pytest tests/                                 # Run tests
+python scripts/validation/verify_environment.py # Check environment
+python scripts/validation/validate_config.py   # Validate configuration
 
-# Memory Operations (requires: python scripts/claude_commands_utils.py)
-claude /memory-store "content"       # Store information
-claude /memory-recall "query"        # Retrieve information
-claude /memory-health               # Check service status
+# Memory Operations (requires: python scripts/utils/claude_commands_utils.py)
+claude /memory-store "content"                 # Store information
+claude /memory-recall "query"                  # Retrieve information
+claude /memory-health                         # Check service status
 
 # Backend Synchronization
-python scripts/sync_memory_backends.py --status      # Check sync status
-python scripts/sync_memory_backends.py --dry-run     # Preview sync
-python scripts/claude_sync_commands.py backup        # Cloudflare → SQLite
-python scripts/claude_sync_commands.py restore       # SQLite → Cloudflare
+python scripts/sync/sync_memory_backends.py --status    # Check sync status
+python scripts/sync/sync_memory_backends.py --dry-run   # Preview sync
+python scripts/sync/claude_sync_commands.py backup      # Cloudflare → SQLite
+python scripts/sync/claude_sync_commands.py restore     # SQLite → Cloudflare
+
+# Service Management
+scripts/service/memory_service_manager.sh status       # Check service status
+scripts/service/memory_service_manager.sh start-cloudflare # Start with Cloudflare
 
 # Debug & Troubleshooting
-npx @modelcontextprotocol/inspector uv run memory server  # MCP Inspector
-df -h /                             # Check disk space (critical for Litestream)
-journalctl -u mcp-memory-service -f # Monitor service logs
+npx @modelcontextprotocol/inspector uv run memory server # MCP Inspector
+python scripts/database/simple_timestamp_check.py       # Database health check
+df -h /                                               # Check disk space (critical for Litestream)
+journalctl -u mcp-memory-service -f                   # Monitor service logs
 ```
 
 ## Architecture
