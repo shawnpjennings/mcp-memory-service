@@ -75,6 +75,8 @@ export MCP_API_KEY="$(openssl rand -base64 32)" # Generate secure API key
 
 **Configuration Precedence:** Global Claude Config > .env file > Environment variables
 
+**✅ Automatic Configuration Loading (v6.16.0+):** The service now automatically loads `.env` files and respects environment variable precedence. CLI defaults no longer override environment configuration.
+
 **⚠️  Important:** This system uses **Cloudflare as the primary backend**. Local SQLite is only for development/testing.
 
 **Platform Support:** macOS (MPS/CPU), Windows (CUDA/DirectML/CPU), Linux (CUDA/ROCm/CPU)
@@ -118,11 +120,17 @@ python validate_config.py --fix              # Auto-fix common issues (future)
 - **Project Environment**: `.env` file (Cloudflare credentials only)
 - **No Local Overrides**: Project `.mcp.json` should NOT contain memory server config
 
-**Common Configuration Issues:**
+**Common Configuration Issues (Pre-v6.16.0):**
+- **✅ FIXED**: CLI defaults overriding environment variables
+- **✅ FIXED**: Manual .env file loading required
 - **Multiple Backends**: Conflicting SQLite/Cloudflare configurations
 - **Credential Conflicts**: Old macOS paths or missing Cloudflare credentials
 - **Cache Issues**: Restart Claude Code to refresh MCP connections
-- **Environment Confusion**: Check precedence: Global > .env > shell variables
+
+**v6.16.0+ Configuration Benefits:**
+- **Automatic .env loading**: No manual configuration required
+- **Proper precedence**: Environment variables respected over CLI defaults
+- **Better error messages**: Clear indication of configuration loading issues
 
 **Cloudflare Backend Troubleshooting:**
 - **Enhanced Initialization Logging**: Look for these indicators in Claude Desktop logs:
