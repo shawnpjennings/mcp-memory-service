@@ -4,6 +4,71 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.14.0] - 2025-09-22
+
+### 🛠️ **Operational Utilities & Backend Synchronization**
+
+#### New Backend Synchronization Capabilities
+- **Bidirectional Sync Engine**:
+  - ✅ `sync_memory_backends.py` - Core sync logic with intelligent deduplication
+  - ✅ `claude_sync_commands.py` - User-friendly CLI wrapper for sync operations
+  - ✅ Supports Cloudflare ↔ SQLite-vec synchronization with dry-run mode
+  - ✅ Content-based hashing prevents duplicates across backends
+  - ✅ Comprehensive status reporting and error handling
+- **Service Management**:
+  - ✅ `memory_service_manager.sh` - Linux service management for dual-backend deployments
+  - ✅ State-based backend detection using `/tmp/memory-service-backend.state`
+  - ✅ Environment file management for Cloudflare and SQLite configurations
+  - ✅ Integrated sync operations and health monitoring
+- **Configuration Validation**:
+  - ✅ `validate_config.py` - Comprehensive configuration validator
+  - ✅ Validates Claude Code global configuration (~/.claude.json)
+  - ✅ Checks Cloudflare credentials and environment setup
+  - ✅ Detects configuration conflicts and provides solutions
+- **Documentation & Guides**:
+  - ✅ Updated `scripts/README.md` with comprehensive utility documentation
+  - ✅ Added backend sync references to main `README.md` and `CLAUDE.md`
+  - ✅ Created `Backend-Synchronization-Guide.md` wiki page with complete setup guide
+
+#### Code Quality Improvements (Gemini Code Assist Feedback)
+- **Eliminated Code Duplication**:
+  - ✅ Refactored `sync_memory_backends.py` to use shared `_sync_between_backends()` method
+  - ✅ Reduced ~80 lines of duplicate code, improved maintainability
+- **Cross-Platform Compatibility**:
+  - ✅ Replaced hardcoded `/home/hkr/` paths with `$HOME` variable
+  - ✅ Added missing final newlines to all utility scripts
+- **Enhanced Validation & Robustness**:
+  - ✅ Improved configuration validation with regex patterns instead of string matching
+  - ✅ Added UTF-8 encoding to all file operations in `validate_config.py`
+  - ✅ Fixed `.env.sqlite` conflict detection logic
+- **Better Code Organization**:
+  - ✅ Refactored command handling to dictionary-based dispatch pattern
+  - ✅ Improved scalability for future command additions
+
+#### Production Deployment Features
+- **Hybrid Cloud/Local Deployments**: Enable Cloudflare primary with SQLite backup
+- **Disaster Recovery**: Automated backup and restore capabilities
+- **Multi-Machine Sync**: Consistent memory sharing across devices
+- **Development/Production Workflows**: Seamless sync between environments
+- **Troubleshooting Tools**: Configuration validation and service management
+
+#### Impact
+- 🎯 **Fills critical operational gaps** for production deployments
+- 🚀 **Enables advanced deployment strategies** (hybrid cloud/local)
+- 💻 **Simplifies troubleshooting** with validation and management tools
+- ✅ **Professional code quality** meeting all review standards
+- 🔄 **Supports complex workflows** for distributed teams
+
+#### Files Added/Modified (8):
+- `scripts/sync_memory_backends.py` - NEW: Bidirectional sync engine
+- `scripts/claude_sync_commands.py` - NEW: CLI wrapper for sync operations
+- `scripts/memory_service_manager.sh` - NEW: Linux service manager
+- `scripts/validate_config.py` - NEW: Configuration validator
+- `scripts/README.md` - UPDATED: Comprehensive utility documentation
+- `README.md` - UPDATED: Added troubleshooting references
+- `CLAUDE.md` - UPDATED: Added sync and validation commands
+- Wiki: `Backend-Synchronization-Guide.md` - NEW: Complete sync setup guide
+
 ## [6.13.8] - 2025-09-21
 
 ### 🔧 **Integration Completion**
