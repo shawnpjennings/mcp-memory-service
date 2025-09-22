@@ -4,6 +4,17 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.16.1] - 2025-09-22
+
+### 🔧 **Docker Build Hotfix**
+
+#### Infrastructure Fix
+- **Fixed Docker build failure**: Updated Dockerfile script path after v6.15.0 scripts reorganization
+  - **Issue**: Docker build failing due to `scripts/install_uv.py` not found
+  - **Solution**: Updated path to `scripts/installation/install_uv.py`
+  - **Impact**: Restores automated Docker publishing workflows
+- **No functional changes**: Pure infrastructure fix for CI/CD
+
 ## [6.16.0] - 2025-09-22
 
 ### 🔧 **Configuration Management & Backend Selection Fixes**
