@@ -4,6 +4,42 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.17.0] - 2025-09-22
+
+### 🚀 **Enhanced Installer with Cloudflare Backend Support**
+
+#### Major Installer Improvements
+- **Added Cloudflare backend to installer**: Full support for cloud-first installation workflow
+  - **Interactive credential setup**: Guided collection of API token, Account ID, D1 database, and Vectorize index
+  - **Automatic .env generation**: Securely saves credentials to project environment file
+  - **Connection testing**: Validates Cloudflare API during installation process
+  - **Graceful fallbacks**: Falls back to local backends if cloud setup fails
+- **Enhanced backend selection logic**: Usage-based recommendations for optimal backend choice
+  - **Production scenarios**: Cloudflare for shared access and cloud storage
+  - **Development scenarios**: SQLite-vec for single-user, lightweight setup
+  - **Team scenarios**: ChromaDB for multi-client local collaboration
+- **Improved CLI options**: Updated `--storage-backend` with clear use case descriptions
+  - **New choices**: `cloudflare` (production), `sqlite_vec` (development), `chromadb` (team), `auto_detect`
+  - **Better help text**: Explains when to use each backend option
+
+#### User Experience Enhancements
+- **Interactive backend selection**: Guided setup with compatibility analysis and recommendations
+- **Clear usage guidance**: Backend selection now includes use case scenarios and performance characteristics
+- **Enhanced auto-detection**: Prioritizes most reliable backends for the detected system
+- **Comprehensive documentation**: Updated installation commands and backend comparison table
+
+#### Technical Improvements
+- **Robust error handling**: Comprehensive fallback mechanisms for failed setups
+- **Modular design**: Separate functions for credential collection, validation, and environment setup
+- **Connection validation**: Real-time API testing during Cloudflare backend configuration
+- **Environment file management**: Smart .env file handling that preserves existing settings
+
+#### Benefits for Users
+- **Seamless production setup**: Single command path from installation to Cloudflare backend
+- **Reduced configuration errors**: Automated credential setup eliminates manual .env file creation
+- **Better backend choice**: Clear guidance helps users select optimal storage for their use case
+- **Improved reliability**: Fallback mechanisms ensure installation succeeds even with setup issues
+
 ## [6.16.1] - 2025-09-22
 
 ### 🔧 **Docker Build Hotfix**
