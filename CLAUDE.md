@@ -12,7 +12,8 @@ MCP Memory Service is a Model Context Protocol server providing semantic memory 
 
 ```bash
 # Setup & Development
-python install.py                              # Platform-aware installation
+python scripts/installation/install.py         # Platform-aware installation with backend selection
+python scripts/installation/install.py --storage-backend cloudflare  # Direct Cloudflare setup
 uv run memory server                           # Start server (v6.3.0+ consolidated CLI)
 pytest tests/                                 # Run tests
 python scripts/validation/verify_environment.py # Check environment
@@ -83,11 +84,17 @@ export MCP_API_KEY="$(openssl rand -base64 32)" # Generate secure API key
 
 ## Storage Backends
 
-| Backend | Performance | Use Case |
-|---------|-------------|----------|
-| SQLite-Vec | Fast (5ms read) | Development, single-client |
-| ChromaDB | Medium (15ms read) | Multi-client, team collaboration |
-| Cloudflare | Network dependent | Production, global scale |
+| Backend | Performance | Use Case | Installation |
+|---------|-------------|----------|--------------|
+| **Cloudflare** ☁️ | Network dependent | **Production, shared access** | `install.py --storage-backend cloudflare` |
+| SQLite-Vec 🪶 | Fast (5ms read) | Development, single-user | `install.py --storage-backend sqlite_vec` |
+| ChromaDB 👥 | Medium (15ms read) | Team, multi-client local | `install.py --storage-backend chromadb` |
+
+**v6.16.0+ Installer Enhancements:**
+- **Interactive backend selection** with usage-based recommendations
+- **Automatic Cloudflare credential setup** and `.env` file generation
+- **Connection testing** during installation to validate configuration
+- **Graceful fallbacks** from cloud to local backends if setup fails
 
 ## Development Guidelines
 
