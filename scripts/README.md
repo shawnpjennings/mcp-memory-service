@@ -133,6 +133,114 @@ python scripts/simple_timestamp_check.py --format summary
 
 All scripts should be run from the repository root or with appropriate path adjustments.
 
+## Backend Synchronization
+
+### Cloudflare ↔ SQLite-vec Sync Tools
+
+**`sync_memory_backends.py`** - Bidirectional synchronization between Cloudflare and SQLite-vec backends
+
+```bash
+# Check sync status
+python scripts/sync_memory_backends.py --status
+
+# Dry run - preview what would be synced
+python scripts/sync_memory_backends.py --dry-run
+
+# Sync from Cloudflare to SQLite-vec (backup)
+python scripts/sync_memory_backends.py --direction cf-to-sqlite
+
+# Sync from SQLite-vec to Cloudflare (restore)
+python scripts/sync_memory_backends.py --direction sqlite-to-cf
+
+# Bidirectional sync
+python scripts/sync_memory_backends.py --direction bidirectional
+
+# Verbose mode with detailed logging
+python scripts/sync_memory_backends.py --verbose --dry-run
+```
+
+**Features:**
+- ✅ Bidirectional sync with intelligent deduplication
+- ✅ Content-based hashing to prevent duplicates
+- ✅ Dry-run mode for safe testing
+- ✅ Comprehensive status reporting
+- ✅ Preserves all metadata and timestamps
+- ✅ Handles large datasets efficiently
+
+**`claude_sync_commands.py`** - User-friendly wrapper for sync operations
+
+```bash
+# Simple command interface
+python scripts/claude_sync_commands.py status    # Check sync status
+python scripts/claude_sync_commands.py backup    # Cloudflare → SQLite
+python scripts/claude_sync_commands.py restore   # SQLite → Cloudflare
+python scripts/claude_sync_commands.py sync      # Bidirectional
+python scripts/claude_sync_commands.py dry-run   # Preview changes
+```
+
+**Use Cases:**
+- Hybrid cloud/local deployment strategies
+- Disaster recovery and backup
+- Development/production synchronization
+- Multi-machine memory sharing
+- Migration between storage backends
+
+## Service Management
+
+**`memory_service_manager.sh`** - Linux service management for dual-backend deployments
+
+```bash
+# Start with Cloudflare backend
+./scripts/memory_service_manager.sh start-cloudflare
+
+# Start with SQLite-vec backend
+./scripts/memory_service_manager.sh start-sqlite
+
+# Check service status and sync status
+./scripts/memory_service_manager.sh status
+
+# Sync operations
+./scripts/memory_service_manager.sh sync-backup   # Cloudflare → SQLite
+./scripts/memory_service_manager.sh sync-restore  # SQLite → Cloudflare
+./scripts/memory_service_manager.sh sync-both     # Bidirectional
+
+# Stop service
+./scripts/memory_service_manager.sh stop
+```
+
+**Features:**
+- ✅ Manages dual-backend configurations
+- ✅ Environment file management (.env, .env.sqlite)
+- ✅ Service health monitoring
+- ✅ Integrated sync operations
+- ✅ Log management and troubleshooting
+
+## Configuration Management
+
+**`validate_config.py`** - Configuration validation for MCP Memory Service
+
+```bash
+# Validate current configuration
+python scripts/validate_config.py
+
+# Future: Auto-fix common issues
+python scripts/validate_config.py --fix
+```
+
+**Features:**
+- ✅ Validates Claude Code global configuration (~/.claude.json)
+- ✅ Checks for conflicting .mcp.json files
+- ✅ Validates Cloudflare credentials
+- ✅ Detects environment configuration conflicts
+- ✅ Comprehensive error reporting with solutions
+- ✅ Color-coded output for clarity
+
+**Use Cases:**
+- Troubleshooting setup issues
+- Pre-deployment validation
+- Configuration consistency checks
+- Debugging MCP connection problems
+
 ## Adding New Scripts
 
 When adding new maintenance scripts:
