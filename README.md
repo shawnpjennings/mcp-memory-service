@@ -200,6 +200,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 - **🐛 Bug Reports**: [GitHub Issues](https://github.com/doobidoo/mcp-memory-service/issues)
 - **💬 Discussions**: [GitHub Discussions](https://github.com/doobidoo/mcp-memory-service/discussions)
 - **🔧 Troubleshooting**: [Troubleshooting Guide](https://github.com/doobidoo/mcp-memory-service/wiki/07-TROUBLESHOOTING)
+- **✅ Configuration Validator**: Run `python scripts/validate_config.py` to check your setup
+- **🔄 Backend Sync Tools**: See [scripts/README.md](scripts/README.md#backend-synchronization) for Cloudflare↔SQLite sync
 
 ## 📊 In Production
 
