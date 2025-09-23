@@ -4,6 +4,49 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.18.0] - 2025-09-23
+
+### 🚀 **Cloudflare Dual-Environment Configuration Suite**
+
+#### New Diagnostic Tools
+- **Added comprehensive backend configuration diagnostic script** (`scripts/validation/diagnose_backend_config.py`)
+  - Environment file validation with masked sensitive data display
+  - Environment variable loading verification with dotenv support
+  - Configuration module import testing with clear error reporting
+  - Storage backend creation testing with full traceback on failures
+  - Status indicators with clear success/warning/error messaging
+- **Enhanced troubleshooting workflow** with step-by-step validation process
+
+#### Documentation Improvements
+- **Created streamlined 5-minute setup guide** (`docs/quick-setup-cloudflare-dual-environment.md`)
+  - Comprehensive dual-environment configuration for Claude Desktop + Claude Code
+  - Configuration templates with explicit environment variable examples
+  - Validation commands with expected health check results
+  - Troubleshooting section for common configuration issues
+  - Migration guide from SQLite-vec to Cloudflare backend
+- **Fixed incorrect CLAUDE.md documentation** that suggested SQLite-vec as "expected behavior"
+- **Added configuration management best practices** with environment variable precedence
+- **Enhanced troubleshooting sections** with specific solutions for environment variable loading issues
+
+#### Configuration Enhancements
+- **Improved environment variable loading reliability** with explicit MCP server configuration
+- **Added execution context guidance** for different environments (Claude Desktop vs Claude Code)
+- **Enhanced working directory awareness** for proper .env file loading
+- **Better configuration validation** with clear error messages for missing required variables
+
+#### Technical Improvements
+- **Unified diagnostic approach** for both Cloudflare and SQLite-vec backends
+- **Enhanced error reporting** with masked sensitive data for security
+- **Improved configuration precedence handling** between global and project settings
+- **Better cross-platform path handling** for Windows environments
+
+#### Benefits for Users
+- **Eliminates configuration confusion** between different execution environments
+- **Provides clear validation tools** to quickly identify and resolve setup issues
+- **Ensures consistent backend usage** across Claude Desktop and Claude Code
+- **Streamlines Cloudflare backend adoption** with comprehensive setup guidance
+- **Reduces setup time** from complex debugging to 5-minute guided process
+
 ## [6.17.2] - 2025-09-23
 
 ### 🔧 **Development Environment Stability Fix**
