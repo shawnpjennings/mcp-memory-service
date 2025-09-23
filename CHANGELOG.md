@@ -4,6 +4,28 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.17.2] - 2025-09-23
+
+### 🔧 **Development Environment Stability Fix**
+
+#### Module Isolation Improvements
+- **Enhanced script module loading** in `scripts/server/run_memory_server.py` to prevent version conflicts
+- **Added module cache clearing** to remove conflicting cached imports before loading local development code
+- **Improved path prioritization** to ensure local `src/` directory takes precedence over installed packages
+- **Better logging** shows exactly which modules are being cleared and paths being added for debugging
+
+#### Technical Improvements
+- **Prevents import conflicts** between development code and installed package versions
+- **Ensures consistent behavior** when switching between development and production environments
+- **Fixes version mismatch issues** that could cause `ImportError` for missing attributes like `INCLUDE_HOSTNAME`
+- **More robust script execution** with conditional path management based on environment
+
+#### Benefits for Developers
+- **Reliable development environment** - Local changes always take precedence
+- **Easier debugging** - Clear logging of module loading process
+- **Consistent Cloudflare backend** - No more fallback to ChromaDB due to version conflicts
+- **Zero breaking changes** - Maintains compatibility with all existing configurations
+
 ## [6.17.1] - 2025-09-23
 
 ### 🔧 **Script Reorganization Compatibility Hotfix**
