@@ -77,10 +77,11 @@ def run_memory_server():
     try:
         # Get the directory of this script
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        parent_dir = os.path.dirname(script_dir)
-        
+        # Go up two directories from scripts/server/ to reach the project root
+        project_root = os.path.dirname(os.path.dirname(script_dir))
+
         # Add src directory to path if it exists
-        src_dir = os.path.join(parent_dir, "src")
+        src_dir = os.path.join(project_root, "src")
         if os.path.exists(src_dir) and src_dir not in sys.path:
             print_info(f"Adding {src_dir} to sys.path")
             sys.path.insert(0, src_dir)

@@ -4,6 +4,34 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.17.1] - 2025-09-23
+
+### 🔧 **Script Reorganization Compatibility Hotfix**
+
+#### Backward Compatibility Added
+- **Added compatibility stub** at `scripts/run_memory_server.py` that redirects to new location with helpful migration notices
+- **Updated configuration templates** to use Python module approach as primary method for maximum stability
+- **Added comprehensive migration documentation** for users updating from pre-v6.17.0 versions
+- **Zero disruption approach**: Existing configurations continue working immediately
+
+#### Recommended Launch Methods (in order of stability)
+1. **`python -m mcp_memory_service.server`** - Most stable, no path dependencies, works across all reorganizations
+2. **`uv run memory server`** - Integrated with UV tooling, already documented as preferred
+3. **`scripts/server/run_memory_server.py`** - Direct script execution at new location
+4. **`scripts/run_memory_server.py`** - Legacy location with backward compatibility (shows migration notice)
+
+#### Documentation Improvements
+- **Enhanced README**: Clear migration notice with multiple working options
+- **Updated examples**: Python module approach as primary recommendation
+- **Migration guide**: Created comprehensive GitHub issue ([#108](https://github.com/doobidoo/mcp-memory-service/issues/108)) with all approaches
+- **Template updates**: Configuration templates now show most stable approaches first
+
+#### Why This Approach
+- **Immediate relief**: No users are blocked during v6.17.0 update
+- **Multiple pathways**: Users can choose the approach that fits their setup
+- **Future-proof**: Python module approach survives any future directory changes
+- **Clear migration path**: Informational notices guide users to better practices without forcing changes
+
 ## [6.17.0] - 2025-09-22
 
 ### 🚀 **Enhanced Installer with Cloudflare Backend Support**
