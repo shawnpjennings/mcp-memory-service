@@ -4,6 +4,57 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.20.0] - 2024-09-24
+
+### 🚀 **Claude Code Dual Protocol Memory Hooks**
+
+#### Major New Features
+- **Dual Protocol Memory Hook Support** - Revolutionary enhancement to Claude Code memory hooks
+  - ✅ **HTTP Protocol Support**: Full compatibility with web-based memory services at `https://localhost:8443`
+  - ✅ **MCP Protocol Support**: Direct integration with MCP server processes via `uv run memory server`
+  - ✅ **Smart Auto-Detection**: Automatically selects best available protocol (MCP preferred, HTTP fallback)
+  - ✅ **Graceful Fallback Chain**: MCP → HTTP → Environment-based storage detection
+  - ✅ **Protocol Flexibility**: Choose specific protocols (`http`, `mcp`) or auto-selection (`auto`)
+
+#### Enhanced Architecture
+- **Unified MemoryClient Class** (`claude-hooks/utilities/memory-client.js`)
+  - Transparent protocol switching with single interface
+  - Connection pooling and error recovery
+  - Protocol-specific optimizations (MCP direct communication, HTTP REST API)
+  - Comprehensive error handling and timeout management
+- **Enhanced Configuration System** (`claude-hooks/config.json`)
+  - Protocol-specific settings (HTTP endpoint/API keys, MCP server commands)
+  - Configurable fallback behavior and connection timeouts
+  - Backward compatibility with existing configurations
+
+#### Reliability Improvements
+- **Multi-Protocol Resilience**: Hooks work across diverse deployment scenarios
+  - Local development (MCP direct), production servers (HTTP), hybrid setups
+  - Network connectivity issues gracefully handled
+  - Service unavailability doesn't break git analysis or project detection
+- **Enhanced Error Handling**: Clear protocol-specific error messages and fallback reporting
+- **Connection Management**: Proper cleanup and resource management for both protocols
+
+#### Developer Experience
+- **Comprehensive Testing Suite** (`claude-hooks/test-dual-protocol-hook.js`)
+  - Tests all protocol combinations: auto-MCP-preferred, auto-HTTP-preferred, MCP-only, HTTP-only
+  - Validates protocol detection, fallback behavior, and error handling
+  - Demonstrates graceful degradation capabilities
+- **Backward Compatibility**: Existing hook configurations continue working unchanged
+- **Enhanced Debugging**: Protocol selection and connection status clearly reported
+
+#### Technical Implementation
+- **Protocol Abstraction Layer**: Single interface for memory operations regardless of protocol
+- **Smart Connection Logic**: Connection attempts with timeouts, fallback sequencing
+- **Memory Query Unification**: Semantic search, time-based queries work identically across protocols
+- **Storage Backend Detection**: Enhanced parsing for both HTTP JSON responses and MCP tool output
+
+#### Benefits for Different Use Cases
+- **Claude Desktop Users**: Better reliability with HTTP fallback when MCP struggles
+- **VS Code Extension Users**: Optimized for HTTP-based deployments
+- **CI/CD Systems**: More robust memory operations in automated environments
+- **Development Workflows**: Local MCP for speed, HTTP for production consistency
+
 ## [6.19.0] - 2024-09-24
 
 ### 🔧 **Configuration Validation Scripts Consolidation**
