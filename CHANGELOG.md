@@ -4,6 +4,26 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.20.1] - 2024-09-24
+
+### 🐛 **Critical Bug Fixes**
+
+#### SQLite-vec Backend Regression Fix
+- **Fixed MCP Server Initialization**: Corrected critical regression that prevented sqlite_vec backend from working
+  - ✅ Fixed class name mismatch: `SqliteVecStorage` → `SqliteVecMemoryStorage`
+  - ✅ Fixed constructor parameters: Updated to use correct `db_path` and `embedding_model` parameters
+  - ✅ Fixed database path: Use `SQLITE_VEC_PATH` instead of incorrect ChromaDB path
+  - ✅ Added missing imports: `SQLITE_VEC_PATH` and `EMBEDDING_MODEL_NAME` from config
+  - ✅ Code quality improvements: Added `_get_sqlite_vec_storage()` helper function to reduce duplication
+
+#### Impact
+- **Restores Default Backend**: sqlite_vec backend (default) now works correctly with MCP server
+- **Fixes Memory Operations**: Resolves "No embedding model available" errors during memory operations
+- **Claude Desktop Integration**: Enables proper memory storage and retrieval functionality
+- **Embedding Support**: Ensures embedding model loads and generates embeddings successfully
+
+Thanks to @ergut for identifying and fixing this critical regression!
+
 ## [6.20.0] - 2024-09-24
 
 ### 🚀 **Claude Code Dual Protocol Memory Hooks**
