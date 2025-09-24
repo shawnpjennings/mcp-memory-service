@@ -908,13 +908,138 @@ class CloudflareStorage(MemoryStorage):
         # Return JSON string representation of the array
         return json.dumps(tags)
     
+    async def recall(self, query: Optional[str] = None, n_results: int = 5, start_timestamp: Optional[float] = None, end_timestamp: Optional[float] = None) -> List[MemoryQueryResult]:
+        """
+        Retrieve memories with combined time filtering and optional semantic search.
+
+        Args:
+            query: Optional semantic search query. If None, only time filtering is applied.
+            n_results: Maximum number of results to return.
+            start_timestamp: Optional start time for filtering.
+            end_timestamp: Optional end time for filtering.
+
+        Returns:
+            List of MemoryQueryResult objects.
+        """
+        try:
+            # Build time filtering WHERE clause for D1
+            time_conditions = []
+            params = []
+
+            if start_timestamp is not None:
+                time_conditions.append("created_at >= ?")
+                params.append(float(start_timestamp))
+
+            if end_timestamp is not None:
+                time_conditions.append("created_at <= ?")
+                params.append(float(end_timestamp))
+
+            time_where = " AND ".join(time_conditions) if time_conditions else ""
+
+            logger.info(f"Recall - Time filtering conditions: {time_where}, params: {params}")
+
+            # Determine search strategy
+            if query and query.strip():
+                # Combined semantic search with time filtering
+                logger.info(f"Recall - Using semantic search with query: '{query}'")
+
+                try:
+                    # Generate query embedding
+                    query_embedding = await self._generate_embedding(query)
+
+                    # Search Vectorize with semantic query
+                    search_payload = {
+                        "vector": query_embedding,
+                        "topK": n_results,
+                        "returnMetadata": "all",
+                        "returnValues": False
+                    }
+
+                    # Add time filtering to vectorize metadata if specified
+                    if time_conditions:
+                        # Note: Vectorize metadata filtering capabilities may be limited
+                        # We'll filter after retrieval for now
+                        logger.info("Recall - Time filtering will be applied post-retrieval from Vectorize")
+
+                    response = await self._retry_request("POST", f"{self.vectorize_url}/query", json=search_payload)
+                    result = response.json()
+
+                    if not result.get("success"):
+                        raise ValueError(f"Vectorize query failed: {result}")
+
+                    matches = result.get("result", {}).get("matches", [])
+
+                    # Convert matches to MemoryQueryResult objects with time filtering
+                    results = []
+                    for match in matches:
+                        memory = await self._load_memory_from_match(match)
+                        if memory:
+                            # Apply time filtering if needed
+                            if start_timestamp is not None and memory.created_at and memory.created_at < start_timestamp:
+                                continue
+                            if end_timestamp is not None and memory.created_at and memory.created_at > end_timestamp:
+                                continue
+
+                            query_result = MemoryQueryResult(
+                                memory=memory,
+                                relevance_score=match.get("score", 0.0)
+                            )
+                            results.append(query_result)
+
+                    logger.info(f"Recall - Retrieved {len(results)} memories with semantic search and time filtering")
+                    return results[:n_results]  # Ensure we don't exceed n_results
+
+                except Exception as e:
+                    logger.error(f"Recall - Semantic search failed, falling back to time-based search: {e}")
+                    # Fall through to time-based search
+
+            # Time-based search only (or fallback)
+            logger.info(f"Recall - Using time-based search only")
+
+            # Build D1 query for time-based retrieval
+            if time_where:
+                sql = f"SELECT * FROM memories WHERE {time_where} ORDER BY created_at DESC LIMIT ?"
+                params.append(n_results)
+            else:
+                # No time filters, get most recent
+                sql = "SELECT * FROM memories ORDER BY created_at DESC LIMIT ?"
+                params = [n_results]
+
+            payload = {"sql": sql, "params": params}
+            response = await self._retry_request("POST", f"{self.d1_url}/query", json=payload)
+            result = response.json()
+
+            if not result.get("success"):
+                raise ValueError(f"D1 query failed: {result}")
+
+            # Convert D1 results to MemoryQueryResult objects
+            results = []
+            if result.get("result", [{}])[0].get("results"):
+                for row in result["result"][0]["results"]:
+                    memory = await self._load_memory_from_row(row)
+                    if memory:
+                        # For time-based search without semantic query, use timestamp as relevance
+                        relevance_score = memory.created_at or 0.0
+                        query_result = MemoryQueryResult(
+                            memory=memory,
+                            relevance_score=relevance_score
+                        )
+                        results.append(query_result)
+
+            logger.info(f"Recall - Retrieved {len(results)} memories with time-based search")
+            return results
+
+        except Exception as e:
+            logger.error(f"Recall failed: {e}")
+            return []
+
     async def close(self) -> None:
         """Close the storage backend and cleanup resources."""
         if self.client:
             await self.client.aclose()
             self.client = None
-        
+
         # Clear embedding cache
         self._embedding_cache.clear()
-        
+
         logger.info("Cloudflare storage backend closed")

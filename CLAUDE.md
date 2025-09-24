@@ -17,7 +17,7 @@ python scripts/installation/install.py --storage-backend cloudflare  # Direct Cl
 uv run memory server                           # Start server (v6.3.0+ consolidated CLI)
 pytest tests/                                 # Run tests
 python scripts/validation/verify_environment.py # Check environment
-python scripts/validation/validate_config.py   # Validate configuration
+python scripts/validation/validate_configuration_complete.py   # Comprehensive configuration validation
 
 # Memory Operations (requires: python scripts/utils/claude_commands_utils.py)
 claude /memory-store "content"                 # Store information
@@ -107,7 +107,7 @@ export MCP_API_KEY="$(openssl rand -base64 32)" # Generate secure API key
 - Storage backends must implement abstract base class
 - All features require corresponding tests
 - Use semantic commit messages for version management
-- Run `python scripts/validate_config.py` when troubleshooting setup issues
+- Run `python scripts/validation/validate_configuration_complete.py` when troubleshooting setup issues
 - Use sync utilities for hybrid Cloudflare/SQLite deployments
 
 ## Key Endpoints
@@ -121,8 +121,7 @@ export MCP_API_KEY="$(openssl rand -base64 32)" # Generate secure API key
 
 **Validation & Troubleshooting:**
 ```bash
-python validate_config.py                    # Validate configuration
-python validate_config.py --fix              # Auto-fix common issues (future)
+python scripts/validation/validate_configuration_complete.py  # Comprehensive configuration validation
 ```
 
 **Single Source of Truth:**
