@@ -40,7 +40,9 @@ from .config import (
     SQLITE_VEC_PATH,
     CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_VECTORIZE_INDEX,
     CLOUDFLARE_D1_DATABASE_ID, CLOUDFLARE_R2_BUCKET, CLOUDFLARE_EMBEDDING_MODEL,
-    CLOUDFLARE_LARGE_CONTENT_THRESHOLD, CLOUDFLARE_MAX_RETRIES, CLOUDFLARE_BASE_DELAY
+    CLOUDFLARE_LARGE_CONTENT_THRESHOLD, CLOUDFLARE_MAX_RETRIES, CLOUDFLARE_BASE_DELAY,
+    HYBRID_SYNC_INTERVAL, HYBRID_BATCH_SIZE, HYBRID_MAX_QUEUE_SIZE,
+    HYBRID_SYNC_ON_STARTUP, HYBRID_FALLBACK_TO_PRIMARY
 )
 from .storage.base import MemoryStorage
 
@@ -73,6 +75,14 @@ def get_storage_backend():
         except ImportError as e:
             logger.error(f"Failed to import Cloudflare storage: {e}")
             raise
+    elif backend == "hybrid":
+        try:
+            from .storage.hybrid import HybridMemoryStorage
+            return HybridMemoryStorage
+        except ImportError as e:
+            logger.error(f"Failed to import Hybrid storage: {e}")
+            logger.warning("Falling back to SQLite-vec storage")
+            return _get_sqlite_vec_storage("Failed to import fallback SQLite-vec storage")
     else:
         logger.warning(f"Unknown storage backend '{backend}', defaulting to SQLite-vec")
         return _get_sqlite_vec_storage("Failed to import default SQLite-vec storage")
@@ -111,6 +121,29 @@ async def mcp_server_lifespan(server: FastMCP) -> AsyncIterator[MCPServerContext
             large_content_threshold=CLOUDFLARE_LARGE_CONTENT_THRESHOLD,
             max_retries=CLOUDFLARE_MAX_RETRIES,
             base_delay=CLOUDFLARE_BASE_DELAY
+        )
+    elif StorageClass.__name__ == "HybridMemoryStorage":
+        # Prepare Cloudflare configuration dict
+        cloudflare_config = None
+        if all([CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_VECTORIZE_INDEX, CLOUDFLARE_D1_DATABASE_ID]):
+            cloudflare_config = {
+                'api_token': CLOUDFLARE_API_TOKEN,
+                'account_id': CLOUDFLARE_ACCOUNT_ID,
+                'vectorize_index': CLOUDFLARE_VECTORIZE_INDEX,
+                'd1_database_id': CLOUDFLARE_D1_DATABASE_ID,
+                'r2_bucket': CLOUDFLARE_R2_BUCKET,
+                'embedding_model': CLOUDFLARE_EMBEDDING_MODEL,
+                'large_content_threshold': CLOUDFLARE_LARGE_CONTENT_THRESHOLD,
+                'max_retries': CLOUDFLARE_MAX_RETRIES,
+                'base_delay': CLOUDFLARE_BASE_DELAY
+            }
+
+        storage = StorageClass(
+            sqlite_db_path=SQLITE_VEC_PATH,
+            embedding_model=EMBEDDING_MODEL_NAME,
+            cloudflare_config=cloudflare_config,
+            sync_interval=HYBRID_SYNC_INTERVAL or 300,
+            batch_size=HYBRID_BATCH_SIZE or 50
         )
     else:  # ChromaStorage
         storage = StorageClass(

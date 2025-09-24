@@ -16,7 +16,7 @@
 MCP Memory Service Configuration
 
 Environment Variables:
-- MCP_MEMORY_STORAGE_BACKEND: Storage backend ('sqlite_vec', 'chromadb', or 'cloudflare')
+- MCP_MEMORY_STORAGE_BACKEND: Storage backend ('sqlite_vec', 'chromadb', 'cloudflare', or 'hybrid')
 - MCP_MEMORY_CHROMA_PATH: Local ChromaDB storage directory
 - MCP_MEMORY_CHROMADB_HOST: Remote ChromaDB server hostname (enables remote mode)
 - MCP_MEMORY_CHROMADB_PORT: Remote ChromaDB server port (default: 8000)
@@ -179,7 +179,7 @@ SERVER_NAME = "memory"
 from . import __version__ as SERVER_VERSION
 
 # Storage backend configuration
-SUPPORTED_BACKENDS = ['chroma', 'sqlite_vec', 'sqlite-vec', 'cloudflare']
+SUPPORTED_BACKENDS = ['chroma', 'sqlite_vec', 'sqlite-vec', 'cloudflare', 'hybrid']
 STORAGE_BACKEND = os.getenv('MCP_MEMORY_STORAGE_BACKEND', 'sqlite_vec').lower()
 
 # Normalize backend names (sqlite-vec -> sqlite_vec)
@@ -193,8 +193,8 @@ if STORAGE_BACKEND not in SUPPORTED_BACKENDS:
 
 logger.info(f"Using storage backend: {STORAGE_BACKEND}")
 
-# SQLite-vec specific configuration
-if STORAGE_BACKEND == 'sqlite_vec':
+# SQLite-vec specific configuration (also needed for hybrid backend)
+if STORAGE_BACKEND == 'sqlite_vec' or STORAGE_BACKEND == 'hybrid':
     # Try multiple environment variable names for SQLite-vec path
     sqlite_vec_path = None
     for env_var in ['MCP_MEMORY_SQLITE_PATH', 'MCP_MEMORY_SQLITEVEC_PATH']:
@@ -226,8 +226,8 @@ if USE_ONNX:
     ONNX_MODEL_CACHE = os.path.join(BASE_DIR, 'onnx_models')
     os.makedirs(ONNX_MODEL_CACHE, exist_ok=True)
 
-# Cloudflare specific configuration
-if STORAGE_BACKEND == 'cloudflare':
+# Cloudflare specific configuration (also needed for hybrid backend)
+if STORAGE_BACKEND == 'cloudflare' or STORAGE_BACKEND == 'hybrid':
     # Required Cloudflare settings
     CLOUDFLARE_API_TOKEN = os.getenv('CLOUDFLARE_API_TOKEN')
     CLOUDFLARE_ACCOUNT_ID = os.getenv('CLOUDFLARE_ACCOUNT_ID')
@@ -274,6 +274,49 @@ else:
     CLOUDFLARE_LARGE_CONTENT_THRESHOLD = None
     CLOUDFLARE_MAX_RETRIES = None
     CLOUDFLARE_BASE_DELAY = None
+
+# Hybrid backend specific configuration
+if STORAGE_BACKEND == 'hybrid':
+    # Sync service configuration
+    HYBRID_SYNC_INTERVAL = int(os.getenv('MCP_HYBRID_SYNC_INTERVAL', '300'))  # 5 minutes default
+    HYBRID_BATCH_SIZE = int(os.getenv('MCP_HYBRID_BATCH_SIZE', '50'))
+    HYBRID_MAX_QUEUE_SIZE = int(os.getenv('MCP_HYBRID_MAX_QUEUE_SIZE', '1000'))
+    HYBRID_MAX_RETRIES = int(os.getenv('MCP_HYBRID_MAX_RETRIES', '3'))
+
+    # Performance tuning
+    HYBRID_ENABLE_HEALTH_CHECKS = os.getenv('MCP_HYBRID_ENABLE_HEALTH_CHECKS', 'true').lower() == 'true'
+    HYBRID_HEALTH_CHECK_INTERVAL = int(os.getenv('MCP_HYBRID_HEALTH_CHECK_INTERVAL', '60'))  # 1 minute
+    HYBRID_SYNC_ON_STARTUP = os.getenv('MCP_HYBRID_SYNC_ON_STARTUP', 'true').lower() == 'true'
+
+    # Fallback behavior
+    HYBRID_FALLBACK_TO_PRIMARY = os.getenv('MCP_HYBRID_FALLBACK_TO_PRIMARY', 'true').lower() == 'true'
+    HYBRID_WARN_ON_SECONDARY_FAILURE = os.getenv('MCP_HYBRID_WARN_ON_SECONDARY_FAILURE', 'true').lower() == 'true'
+
+    logger.info(f"Hybrid storage configuration: sync_interval={HYBRID_SYNC_INTERVAL}s, batch_size={HYBRID_BATCH_SIZE}")
+
+    # Validate Cloudflare configuration for hybrid mode
+    if not (CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_VECTORIZE_INDEX and CLOUDFLARE_D1_DATABASE_ID):
+        logger.warning("Hybrid mode requires Cloudflare configuration. Missing required variables:")
+        if not CLOUDFLARE_API_TOKEN:
+            logger.warning("  - CLOUDFLARE_API_TOKEN")
+        if not CLOUDFLARE_ACCOUNT_ID:
+            logger.warning("  - CLOUDFLARE_ACCOUNT_ID")
+        if not CLOUDFLARE_VECTORIZE_INDEX:
+            logger.warning("  - CLOUDFLARE_VECTORIZE_INDEX")
+        if not CLOUDFLARE_D1_DATABASE_ID:
+            logger.warning("  - CLOUDFLARE_D1_DATABASE_ID")
+        logger.warning("Hybrid mode will operate in SQLite-only mode until Cloudflare is configured")
+else:
+    # Set hybrid-specific variables to None when not using hybrid backend
+    HYBRID_SYNC_INTERVAL = None
+    HYBRID_BATCH_SIZE = None
+    HYBRID_MAX_QUEUE_SIZE = None
+    HYBRID_MAX_RETRIES = None
+    HYBRID_ENABLE_HEALTH_CHECKS = None
+    HYBRID_HEALTH_CHECK_INTERVAL = None
+    HYBRID_SYNC_ON_STARTUP = None
+    HYBRID_FALLBACK_TO_PRIMARY = None
+    HYBRID_WARN_ON_SECONDARY_FAILURE = None
 
 # ChromaDB settings with performance optimizations
 CHROMA_SETTINGS = {
