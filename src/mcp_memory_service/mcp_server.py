@@ -35,37 +35,37 @@ from mcp.types import TextContent
 
 # Import existing memory service components
 from .config import (
-    CHROMA_PATH, COLLECTION_METADATA, STORAGE_BACKEND, 
+    CHROMA_PATH, COLLECTION_METADATA, STORAGE_BACKEND,
     CONSOLIDATION_ENABLED, EMBEDDING_MODEL_NAME, INCLUDE_HOSTNAME,
+    SQLITE_VEC_PATH,
     CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_VECTORIZE_INDEX,
     CLOUDFLARE_D1_DATABASE_ID, CLOUDFLARE_R2_BUCKET, CLOUDFLARE_EMBEDDING_MODEL,
     CLOUDFLARE_LARGE_CONTENT_THRESHOLD, CLOUDFLARE_MAX_RETRIES, CLOUDFLARE_BASE_DELAY
 )
 from .storage.base import MemoryStorage
 
+def _get_sqlite_vec_storage(error_message="Failed to import SQLite-vec storage"):
+    """Helper function to import SqliteVecMemoryStorage with consistent error handling."""
+    try:
+        from .storage.sqlite_vec import SqliteVecMemoryStorage
+        return SqliteVecMemoryStorage
+    except ImportError as e:
+        logger.error(f"{error_message}: {e}")
+        raise
+
 def get_storage_backend():
     """Dynamically select and import storage backend based on configuration and availability."""
     backend = STORAGE_BACKEND.lower()
-    
+
     if backend == "sqlite-vec" or backend == "sqlite_vec":
-        try:
-            from .storage.sqlite_vec import SqliteVecMemoryStorage
-            return SqliteVecMemoryStorage
-        except ImportError as e:
-            logger.error(f"Failed to import SQLite-vec storage: {e}")
-            raise
+        return _get_sqlite_vec_storage()
     elif backend == "chroma":
         try:
             from .storage.chroma import ChromaStorage
             return ChromaStorage
         except ImportError:
             logger.warning("ChromaDB not available, falling back to SQLite-vec")
-            try:
-                from .storage.sqlite_vec import SqliteVecStorage
-                return SqliteVecStorage
-            except ImportError as e:
-                logger.error(f"Failed to import fallback SQLite-vec storage: {e}")
-                raise
+            return _get_sqlite_vec_storage("Failed to import fallback SQLite-vec storage")
     elif backend == "cloudflare":
         try:
             from .storage.cloudflare import CloudflareStorage
@@ -75,12 +75,7 @@ def get_storage_backend():
             raise
     else:
         logger.warning(f"Unknown storage backend '{backend}', defaulting to SQLite-vec")
-        try:
-            from .storage.sqlite_vec import SqliteVecMemoryStorage
-            return SqliteVecMemoryStorage
-        except ImportError as e:
-            logger.error(f"Failed to import default SQLite-vec storage: {e}")
-            raise
+        return _get_sqlite_vec_storage("Failed to import default SQLite-vec storage")
 from .models.memory import Memory
 
 # Configure logging
@@ -101,7 +96,6 @@ async def mcp_server_lifespan(server: FastMCP) -> AsyncIterator[MCPServerContext
     StorageClass = get_storage_backend()
     
     if StorageClass.__name__ == "SqliteVecMemoryStorage":
-        from ..config import SQLITE_VEC_PATH, EMBEDDING_MODEL_NAME
         storage = StorageClass(
             db_path=SQLITE_VEC_PATH,
             embedding_model=EMBEDDING_MODEL_NAME
