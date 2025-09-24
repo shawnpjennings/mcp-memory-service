@@ -502,7 +502,8 @@ class HybridMemoryStorage(MemoryStorage):
 
     async def get_stats(self) -> Dict[str, Any]:
         """Get comprehensive statistics from both storage backends."""
-        primary_stats = await self.primary.get_stats()
+        # SQLite-vec get_stats is synchronous, not async
+        primary_stats = self.primary.get_stats()
 
         stats = {
             "storage_backend": "Hybrid (SQLite-vec + Cloudflare)",
@@ -530,23 +531,23 @@ class HybridMemoryStorage(MemoryStorage):
 
     async def get_all_tags(self) -> List[str]:
         """Get all unique tags from primary storage."""
-        return await self.primary.get_all_tags()
+        return self.primary.get_all_tags()
 
     async def get_recent_memories(self, n: int = 10) -> List[Memory]:
         """Get recent memories from primary storage."""
-        return await self.primary.get_recent_memories(n)
+        return self.primary.get_recent_memories(n)
 
     async def recall_memory(self, query: str, n_results: int = 5) -> List[Memory]:
         """Recall memories using natural language time expressions."""
-        return await self.primary.recall_memory(query, n_results)
+        return self.primary.recall_memory(query, n_results)
 
     async def get_all_memories(self) -> List[Memory]:
         """Get all memories from primary storage."""
-        return await self.primary.get_all_memories()
+        return self.primary.get_all_memories()
 
     async def get_memories_by_time_range(self, start_time: float, end_time: float) -> List[Memory]:
         """Get memories within time range from primary storage."""
-        return await self.primary.get_memories_by_time_range(start_time, end_time)
+        return self.primary.get_memories_by_time_range(start_time, end_time)
 
     async def close(self):
         """Clean shutdown of hybrid storage system."""
@@ -557,11 +558,17 @@ class HybridMemoryStorage(MemoryStorage):
             await self.sync_service.stop()
 
         # Close storage backends
-        if hasattr(self.primary, 'close'):
-            await self.primary.close()
+        if hasattr(self.primary, 'close') and self.primary.close:
+            if asyncio.iscoroutinefunction(self.primary.close):
+                await self.primary.close()
+            else:
+                self.primary.close()
 
-        if self.secondary and hasattr(self.secondary, 'close'):
-            await self.secondary.close()
+        if self.secondary and hasattr(self.secondary, 'close') and self.secondary.close:
+            if asyncio.iscoroutinefunction(self.secondary.close):
+                await self.secondary.close()
+            else:
+                self.secondary.close()
 
         logger.info("Hybrid memory storage shutdown completed")
 
