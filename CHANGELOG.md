@@ -4,6 +4,33 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.19.0] - 2024-09-24
+
+### 🔧 **Configuration Validation Scripts Consolidation**
+
+#### Improvements
+- **Consolidated validation scripts** - Merged `validate_config.py` and `validate_configuration.py` into comprehensive `validate_configuration_complete.py`
+  - ✅ Multi-platform support (Windows/macOS/Linux)
+  - ✅ All configuration sources validation (.env, Claude Desktop, Claude Code)
+  - ✅ Cross-configuration consistency checking
+  - ✅ Enhanced API token validation with known invalid token detection
+  - ✅ Improved error reporting and recommendations
+  - ✅ Windows console compatibility (no Unicode issues)
+
+#### Removed
+- ❌ **Deprecated scripts**: `validate_config.py` and `validate_configuration.py` (redundant)
+
+#### Fixed
+- **Cloudflare Backend Critical Issue**: Implemented missing `recall` method in CloudflareStorage class
+  - ✅ Dual search strategy (semantic + time-based)
+  - ✅ Graceful fallback mechanism
+  - ✅ Comprehensive error handling
+  - ✅ Time filtering support
+
+#### Documentation Updates
+- **Updated all documentation references** to use new consolidated validation script
+- **Created comprehensive API token setup guide** (`docs/troubleshooting/cloudflare-api-token-setup.md`)
+
 ## [6.18.0] - 2025-09-23
 
 ### 🚀 **Cloudflare Dual-Environment Configuration Suite**
