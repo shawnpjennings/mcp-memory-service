@@ -15,6 +15,7 @@ MCP Memory Service is a Model Context Protocol server providing semantic memory 
 ```bash
 # Setup & Development
 python scripts/installation/install.py         # Platform-aware installation with backend selection
+python scripts/installation/install.py --storage-backend hybrid      # Hybrid setup (RECOMMENDED)
 python scripts/installation/install.py --storage-backend cloudflare  # Direct Cloudflare setup
 uv run memory server                           # Start server (v6.3.0+ consolidated CLI)
 pytest tests/                                 # Run tests
@@ -133,9 +134,42 @@ export MCP_API_KEY="$(openssl rand -base64 32)" # Generate secure API key
 
 | Backend | Performance | Use Case | Installation |
 |---------|-------------|----------|--------------|
-| **Cloudflare** ☁️ | Network dependent | **Production, shared access** | `install.py --storage-backend cloudflare` |
+| **Hybrid** ⚡ | **Fast (5ms read)** | **🌟 Production (Recommended)** | `install.py --storage-backend hybrid` |
+| **Cloudflare** ☁️ | Network dependent | Legacy cloud-only | `install.py --storage-backend cloudflare` |
 | SQLite-Vec 🪶 | Fast (5ms read) | Development, single-user | `install.py --storage-backend sqlite_vec` |
 | ChromaDB 👥 | Medium (15ms read) | Team, multi-client local | `install.py --storage-backend chromadb` |
+
+### 🚀 **Hybrid Backend (v6.21.0+) - RECOMMENDED**
+
+The **Hybrid backend** provides the best of both worlds - **SQLite-vec speed with Cloudflare persistence**:
+
+```bash
+# Enable hybrid backend
+export MCP_MEMORY_STORAGE_BACKEND=hybrid
+
+# Hybrid-specific configuration
+export MCP_HYBRID_SYNC_INTERVAL=300    # Background sync every 5 minutes
+export MCP_HYBRID_BATCH_SIZE=50        # Sync 50 operations at a time
+export MCP_HYBRID_SYNC_ON_STARTUP=true # Initial sync on startup
+
+# Requires Cloudflare credentials (same as cloudflare backend)
+export CLOUDFLARE_API_TOKEN="your-token"
+export CLOUDFLARE_ACCOUNT_ID="your-account"
+export CLOUDFLARE_D1_DATABASE_ID="your-d1-id"
+export CLOUDFLARE_VECTORIZE_INDEX="mcp-memory-index"
+```
+
+**Key Benefits:**
+- ✅ **5ms read/write performance** (SQLite-vec speed)
+- ✅ **Zero user-facing latency** - Cloud sync happens in background
+- ✅ **Multi-device synchronization** - Access memories everywhere
+- ✅ **Graceful offline operation** - Works without internet, syncs when available
+- ✅ **Automatic failover** - Falls back to SQLite-only if Cloudflare unavailable
+
+**Architecture:**
+- **Primary Storage**: SQLite-vec (all user operations)
+- **Secondary Storage**: Cloudflare (background sync)
+- **Background Service**: Async queue with retry logic and health monitoring
 
 **v6.16.0+ Installer Enhancements:**
 - **Interactive backend selection** with usage-based recommendations
