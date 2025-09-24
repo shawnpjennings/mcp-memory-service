@@ -1,7 +1,20 @@
 {
   "memoryService": {
-    "endpoint": "cloudflare",
-    "apiKey": "VhOGAoUOE5_BMzu-phDORdyXHNMcDRBxvndK_Uop",
+    "protocol": "auto",
+    "preferredProtocol": "mcp",
+    "fallbackEnabled": true,
+    "http": {
+      "endpoint": "https://localhost:8443",
+      "apiKey": "test-key-123",
+      "healthCheckTimeout": 3000,
+      "useDetailedHealthCheck": true
+    },
+    "mcp": {
+      "serverCommand": ["uv", "run", "memory", "server", "-s", "cloudflare"],
+      "serverWorkingDir": "/Users/hkr/Documents/GitHub/mcp-memory-service",
+      "connectionTimeout": 5000,
+      "toolCallTimeout": 10000
+    },
     "defaultTags": ["claude-code", "auto-generated"],
     "maxMemoriesPerSession": 8,
     "enableSessionConsolidation": true,
@@ -11,10 +24,7 @@
     "recentTimeWindow": "last-week",
     "fallbackTimeWindow": "last-month",
     "showStorageSource": true,
-    "sourceDisplayMode": "brief",
-    "healthCheckTimeout": 3000,
-    "healthCheckEnabled": false,
-    "useDetailedHealthCheck": false
+    "sourceDisplayMode": "brief"
   },
   "projectDetection": {
     "gitRepository": true,

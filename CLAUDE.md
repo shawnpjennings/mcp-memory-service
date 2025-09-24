@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 MCP Memory Service is a Model Context Protocol server providing semantic memory and persistent storage for Claude Desktop using ChromaDB and sentence transformers.
 
+> **🚀 v6.20.0**: Now features **Dual Protocol Memory Hooks** for Claude Code with automatic HTTP/MCP protocol detection and smart fallback!
+
 ## Essential Commands
 
 ```bash
@@ -50,13 +52,18 @@ journalctl -u mcp-memory-service -f                   # Monitor service logs
 - **Server Layer**: MCP protocol implementation with async handlers and global caches (`src/mcp_memory_service/server.py`)
 - **Storage Backends**: SQLite-Vec (fast, single-client), ChromaDB (multi-client), Cloudflare (production)
 - **Web Interface**: FastAPI dashboard at `https://localhost:8443/` with REST API
-- **Claude Code Hooks**: Session lifecycle management and automatic memory awareness
+- **Dual Protocol Memory Hooks** 🆕: Advanced Claude Code integration with HTTP + MCP support
+  - **HTTP Protocol**: Web-based memory service connection (`https://localhost:8443/api/*`)
+  - **MCP Protocol**: Direct server process communication (`uv run memory server`)
+  - **Smart Auto-Detection**: MCP preferred → HTTP fallback → Environment detection
+  - **Unified Interface**: Transparent protocol switching via `MemoryClient` wrapper
 
 **Key Design Patterns:**
 - Async/await for all I/O operations
 - Type safety with Python 3.10+ hints
 - Platform detection for hardware optimization (CUDA, MPS, DirectML, ROCm)
 - Global model and embedding caches for performance
+- **Protocol Abstraction** 🆕: Single interface for multi-protocol memory operations
 
 ## Environment Variables
 
@@ -84,6 +91,43 @@ export MCP_API_KEY="$(openssl rand -base64 32)" # Generate secure API key
 **⚠️  Important:** This system uses **Cloudflare as the primary backend**. If health checks show SQLite-vec instead of Cloudflare, this indicates a configuration issue that needs to be resolved.
 
 **Platform Support:** macOS (MPS/CPU), Windows (CUDA/DirectML/CPU), Linux (CUDA/ROCm/CPU)
+
+## Claude Code Hooks Configuration 🆕
+
+**Dual Protocol Memory Hooks** (v6.20.0+) provide intelligent memory awareness with automatic protocol detection:
+
+```json
+{
+  "memoryService": {
+    "protocol": "auto",
+    "preferredProtocol": "mcp",
+    "fallbackEnabled": true,
+    "http": {
+      "endpoint": "https://localhost:8443",
+      "apiKey": "your-api-key",
+      "healthCheckTimeout": 3000,
+      "useDetailedHealthCheck": true
+    },
+    "mcp": {
+      "serverCommand": ["uv", "run", "memory", "server", "-s", "cloudflare"],
+      "serverWorkingDir": "/Users/yourname/path/to/mcp-memory-service",
+      "connectionTimeout": 5000,
+      "toolCallTimeout": 10000
+    }
+  }
+}
+```
+
+**Protocol Options:**
+- `"auto"`: Smart detection (MCP → HTTP → Environment fallback)
+- `"http"`: HTTP-only mode (web server at localhost:8443)
+- `"mcp"`: MCP-only mode (direct server process)
+
+**Benefits:**
+- **Reliability**: Multiple connection methods ensure hooks always work
+- **Performance**: MCP direct for speed, HTTP for stability
+- **Flexibility**: Works with local development or remote deployments
+- **Compatibility**: Full backward compatibility with existing configurations
 
 ## Storage Backends
 
