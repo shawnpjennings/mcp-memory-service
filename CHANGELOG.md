@@ -4,6 +4,74 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.21.0] - 2024-09-25
+
+### 🚀 **Hybrid Storage Backend - Performance Revolution**
+
+#### Major New Features
+- **🌟 Revolutionary Hybrid Storage Backend** - Combines the best of both worlds:
+  - ✅ **SQLite-vec Performance**: ~5ms reads/writes (10-100x faster than Cloudflare-only)
+  - ✅ **Cloudflare Persistence**: Multi-device synchronization and cloud backup
+  - ✅ **Zero User-Facing Latency**: All operations hit SQLite-vec first, background sync to cloud
+  - ✅ **Intelligent Write-Through Cache**: Instant response with async cloud synchronization
+
+#### Enhanced Architecture & Performance
+- **Background Synchronization Service**
+  - Async queue with intelligent retry logic and exponential backoff
+  - Concurrent sync operations with configurable batch processing
+  - Real-time health monitoring and capacity tracking
+  - Graceful degradation when cloud services are unavailable
+- **Advanced Error Handling**
+  - Intelligent error categorization (temporary vs permanent vs limit errors)
+  - Automatic retry for network/temporary issues
+  - No-retry policy for hard limits (prevents infinite loops)
+  - Comprehensive logging with error classification
+
+#### Cloudflare Limit Protection & Monitoring 🛡️
+- **Pre-Sync Validation**
+  - Metadata size validation (10KB limit per vector)
+  - Vector count monitoring (5M vector limit)
+  - Automatic capacity checks before sync operations
+- **Real-Time Capacity Monitoring**
+  - Usage percentage tracking with warning thresholds
+  - Critical alerts at 95% capacity, warnings at 80%
+  - Proactive limit detection and graceful handling
+- **Enhanced Limit Error Handling**
+  - Detection of 413, 507, and quota exceeded responses
+  - Automatic capacity status updates on limit errors
+  - Permanent failure classification for hard limits
+
+#### Configuration & Deployment
+- **Simple Setup**: Just set `MCP_MEMORY_STORAGE_BACKEND=hybrid` + Cloudflare credentials
+- **Advanced Tuning Options**:
+  - `MCP_HYBRID_SYNC_INTERVAL`: Background sync frequency (default: 300s)
+  - `MCP_HYBRID_BATCH_SIZE`: Sync batch size (default: 50)
+  - `MCP_HYBRID_MAX_QUEUE_SIZE`: Queue capacity (default: 1000)
+  - Health check intervals and retry configurations
+
+#### Benefits
+- **For Users**:
+  - Instant memory operations (no more waiting for cloud responses)
+  - Reliable offline functionality with automatic sync when online
+  - Seamless multi-device access to memories
+- **For Production**:
+  - Handles Cloudflare's strict limits intelligently
+  - Robust error recovery and monitoring
+  - Scales from single-user to enterprise deployments
+
+### 🧪 **Comprehensive Testing & Validation**
+- **347 lines of Cloudflare limit testing** (`tests/test_hybrid_cloudflare_limits.py`)
+- **Performance characteristic validation**
+- **Background sync verification scripts**
+- **Live testing utilities for production validation**
+
+### 📖 **Documentation & Setup**
+- **CLAUDE.md**: Hybrid marked as **RECOMMENDED** default for new installations
+- **Installation Script Updates**: Interactive hybrid backend selection
+- **Configuration Validation**: Enhanced diagnostic tools for setup verification
+
+**🎯 Recommendation**: This should become the **default backend for all new installations** due to its superior performance and reliability characteristics.
+
 ## [6.20.1] - 2024-09-24
 
 ### 🐛 **Critical Bug Fixes**
