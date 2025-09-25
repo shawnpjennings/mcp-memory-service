@@ -25,17 +25,31 @@ This implementation provides the best of both worlds:
 import asyncio
 import logging
 import time
-import threading
-from typing import List, Dict, Any, Tuple, Optional, Set
-from datetime import datetime
+from typing import List, Dict, Any, Tuple, Optional
 from collections import deque
 from dataclasses import dataclass
-from concurrent.futures import ThreadPoolExecutor
 
 from .base import MemoryStorage
 from .sqlite_vec import SqliteVecMemoryStorage
 from .cloudflare import CloudflareStorage
 from ..models.memory import Memory, MemoryQueryResult
+
+# Import config to check if limit constants are available
+try:
+    from ..config import (
+        CLOUDFLARE_D1_MAX_SIZE_GB,
+        CLOUDFLARE_VECTORIZE_MAX_VECTORS,
+        CLOUDFLARE_MAX_METADATA_SIZE_KB,
+        CLOUDFLARE_WARNING_THRESHOLD_PERCENT,
+        CLOUDFLARE_CRITICAL_THRESHOLD_PERCENT
+    )
+except ImportError:
+    # Fallback values if config doesn't have them
+    CLOUDFLARE_D1_MAX_SIZE_GB = 10
+    CLOUDFLARE_VECTORIZE_MAX_VECTORS = 5_000_000
+    CLOUDFLARE_MAX_METADATA_SIZE_KB = 10
+    CLOUDFLARE_WARNING_THRESHOLD_PERCENT = 80
+    CLOUDFLARE_CRITICAL_THRESHOLD_PERCENT = 95
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +109,15 @@ class BackgroundSyncService:
         self.consecutive_failures = 0
         self.max_consecutive_failures = 5
         self.backoff_time = 60  # Start with 1 minute backoff
+
+        # Cloudflare capacity tracking
+        self.cloudflare_stats = {
+            'vector_count': 0,
+            'estimated_d1_size_gb': 0,
+            'last_capacity_check': 0,
+            'approaching_limits': False,
+            'limit_warnings': []
+        }
 
     async def start(self):
         """Start the background sync service."""
@@ -171,21 +194,39 @@ class BackgroundSyncService:
                     'duration': time.time() - sync_start_time
                 }
 
-            # Sync from primary to secondary
-            synced_count = 0
-            failed_count = 0
-
-            for memory in primary_memories:
+            # Sync from primary to secondary using concurrent operations
+            async def sync_memory(memory):
                 try:
                     success, message = await self.secondary.store(memory)
                     if success:
-                        synced_count += 1
+                        return True, None
                     else:
-                        failed_count += 1
                         logger.debug(f"Failed to sync memory to secondary: {message}")
+                        return False, message
                 except Exception as e:
-                    failed_count += 1
                     logger.debug(f"Exception syncing memory to secondary: {e}")
+                    return False, str(e)
+
+            # Process memories concurrently in batches
+            synced_count = 0
+            failed_count = 0
+
+            # Process in batches to avoid overwhelming the system
+            batch_size = min(self.batch_size, 10)  # Limit concurrent operations
+            for i in range(0, len(primary_memories), batch_size):
+                batch = primary_memories[i:i + batch_size]
+                results = await asyncio.gather(*[sync_memory(m) for m in batch], return_exceptions=True)
+
+                for result in results:
+                    if isinstance(result, Exception):
+                        failed_count += 1
+                        logger.debug(f"Exception in batch sync: {result}")
+                    elif isinstance(result, tuple):
+                        success, _ = result
+                        if success:
+                            synced_count += 1
+                        else:
+                            failed_count += 1
 
             sync_duration = time.time() - sync_start_time
             self.sync_stats['last_sync_duration'] = sync_duration
@@ -214,7 +255,7 @@ class BackgroundSyncService:
         """Get current sync service status and statistics."""
         queue_size = self.operation_queue.qsize()
 
-        return {
+        status = {
             'is_running': self.is_running,
             'queue_size': queue_size,
             'failed_operations': len(self.failed_operations),
@@ -222,8 +263,85 @@ class BackgroundSyncService:
             'consecutive_failures': self.consecutive_failures,
             'stats': self.sync_stats.copy(),
             'cloudflare_available': self.sync_stats['cloudflare_available'],
-            'next_sync_in': max(0, self.sync_interval - (time.time() - self.last_sync_time))
+            'next_sync_in': max(0, self.sync_interval - (time.time() - self.last_sync_time)),
+            'capacity': {
+                'vector_count': self.cloudflare_stats['vector_count'],
+                'vector_limit': CLOUDFLARE_VECTORIZE_MAX_VECTORS,
+                'approaching_limits': self.cloudflare_stats['approaching_limits'],
+                'warnings': self.cloudflare_stats['limit_warnings']
+            }
         }
+
+        return status
+
+    async def validate_memory_for_cloudflare(self, memory: Memory) -> Tuple[bool, Optional[str]]:
+        """
+        Validate if a memory can be synced to Cloudflare.
+
+        Returns:
+            Tuple of (is_valid, error_message)
+        """
+        # Check metadata size
+        if memory.metadata:
+            import json
+            metadata_json = json.dumps(memory.metadata)
+            metadata_size_kb = len(metadata_json.encode('utf-8')) / 1024
+
+            if metadata_size_kb > CLOUDFLARE_MAX_METADATA_SIZE_KB:
+                return False, f"Metadata size {metadata_size_kb:.2f}KB exceeds Cloudflare limit of {CLOUDFLARE_MAX_METADATA_SIZE_KB}KB"
+
+        # Check if we're approaching vector count limit
+        if self.cloudflare_stats['vector_count'] >= CLOUDFLARE_VECTORIZE_MAX_VECTORS:
+            return False, f"Cloudflare vector limit of {CLOUDFLARE_VECTORIZE_MAX_VECTORS} reached"
+
+        return True, None
+
+    async def check_cloudflare_capacity(self) -> Dict[str, Any]:
+        """
+        Check remaining Cloudflare capacity and return status.
+        """
+        try:
+            # Get current stats from Cloudflare
+            cf_stats = await self.secondary.get_stats()
+
+            # Update our tracking
+            self.cloudflare_stats['vector_count'] = cf_stats.get('total_memories', 0)
+            self.cloudflare_stats['last_capacity_check'] = time.time()
+
+            # Calculate usage percentages
+            vector_usage_percent = (self.cloudflare_stats['vector_count'] / CLOUDFLARE_VECTORIZE_MAX_VECTORS) * 100
+
+            # Clear previous warnings
+            self.cloudflare_stats['limit_warnings'] = []
+
+            # Check vector count limits
+            if vector_usage_percent >= CLOUDFLARE_CRITICAL_THRESHOLD_PERCENT:
+                warning = f"CRITICAL: Vector usage at {vector_usage_percent:.1f}% ({self.cloudflare_stats['vector_count']:,}/{CLOUDFLARE_VECTORIZE_MAX_VECTORS:,})"
+                self.cloudflare_stats['limit_warnings'].append(warning)
+                logger.error(warning)
+                self.cloudflare_stats['approaching_limits'] = True
+            elif vector_usage_percent >= CLOUDFLARE_WARNING_THRESHOLD_PERCENT:
+                warning = f"WARNING: Vector usage at {vector_usage_percent:.1f}% ({self.cloudflare_stats['vector_count']:,}/{CLOUDFLARE_VECTORIZE_MAX_VECTORS:,})"
+                self.cloudflare_stats['limit_warnings'].append(warning)
+                logger.warning(warning)
+                self.cloudflare_stats['approaching_limits'] = True
+            else:
+                self.cloudflare_stats['approaching_limits'] = False
+
+            return {
+                'vector_count': self.cloudflare_stats['vector_count'],
+                'vector_limit': CLOUDFLARE_VECTORIZE_MAX_VECTORS,
+                'vector_usage_percent': vector_usage_percent,
+                'approaching_limits': self.cloudflare_stats['approaching_limits'],
+                'warnings': self.cloudflare_stats['limit_warnings']
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to check Cloudflare capacity: {e}")
+            return {
+                'error': str(e),
+                'approaching_limits': False
+            }
 
     async def _sync_loop(self):
         """Main background sync loop."""
@@ -279,21 +397,74 @@ class BackgroundSyncService:
                 self.sync_stats['operations_processed'] += 1
 
             except Exception as e:
-                logger.error(f"Error processing sync operation {operation.operation}: {e}")
-                operation.retries += 1
+                await self._handle_sync_error(e, operation)
 
-                if operation.retries < operation.max_retries:
-                    # Retry later
-                    self.failed_operations.append(operation)
-                else:
-                    # Max retries reached
-                    logger.error(f"Max retries reached for operation {operation.operation}")
-                    self.sync_stats['operations_failed'] += 1
+    async def _handle_sync_error(self, error: Exception, operation: SyncOperation):
+        """
+        Handle sync operation errors with intelligent retry logic.
+
+        Args:
+            error: The exception that occurred
+            operation: The failed operation
+        """
+        error_str = str(error).lower()
+
+        # Check for specific Cloudflare limit errors
+        is_limit_error = any(term in error_str for term in [
+            'limit exceeded', 'quota exceeded', 'maximum', 'too large',
+            '413', '507', 'insufficient storage', 'capacity'
+        ])
+
+        if is_limit_error:
+            # Don't retry limit errors - they won't succeed
+            logger.error(f"Cloudflare limit error for {operation.operation}: {error}")
+            self.sync_stats['operations_failed'] += 1
+
+            # Update capacity tracking
+            self.cloudflare_stats['approaching_limits'] = True
+            self.cloudflare_stats['limit_warnings'].append(f"Limit error: {error}")
+
+            # Check capacity to understand the issue
+            await self.check_cloudflare_capacity()
+            return
+
+        # Check for temporary/network errors
+        is_temporary_error = any(term in error_str for term in [
+            'timeout', 'connection', 'network', '500', '502', '503', '504',
+            'temporarily unavailable', 'retry'
+        ])
+
+        if is_temporary_error or operation.retries < operation.max_retries:
+            # Retry temporary errors
+            logger.warning(f"Temporary error for {operation.operation} (retry {operation.retries + 1}/{operation.max_retries}): {error}")
+            operation.retries += 1
+
+            if operation.retries < operation.max_retries:
+                # Add back to queue for retry with exponential backoff
+                await asyncio.sleep(min(2 ** operation.retries, 60))  # Max 60 second delay
+                self.failed_operations.append(operation)
+            else:
+                logger.error(f"Max retries reached for {operation.operation}")
+                self.sync_stats['operations_failed'] += 1
+        else:
+            # Permanent error - don't retry
+            logger.error(f"Permanent error for {operation.operation}: {error}")
+            self.sync_stats['operations_failed'] += 1
 
     async def _process_single_operation(self, operation: SyncOperation):
         """Process a single sync operation to secondary storage."""
         try:
             if operation.operation == 'store' and operation.memory:
+                # Validate memory before syncing
+                is_valid, validation_error = await self.validate_memory_for_cloudflare(operation.memory)
+                if not is_valid:
+                    logger.warning(f"Memory validation failed for sync: {validation_error}")
+                    # Don't retry if it's a hard limit
+                    if "exceeds Cloudflare limit" in validation_error or "limit of" in validation_error:
+                        self.sync_stats['operations_failed'] += 1
+                        return  # Skip this memory permanently
+                    raise Exception(validation_error)
+
                 success, message = await self.secondary.store(operation.memory)
                 if not success:
                     raise Exception(f"Store operation failed: {message}")
@@ -337,6 +508,14 @@ class BackgroundSyncService:
                 stats = await self.secondary.get_stats()
                 logger.debug(f"Secondary storage health check passed: {stats}")
                 self.sync_stats['cloudflare_available'] = True
+
+                # Check Cloudflare capacity every periodic sync
+                capacity_status = await self.check_cloudflare_capacity()
+                if capacity_status.get('approaching_limits'):
+                    logger.warning("Cloudflare approaching capacity limits")
+                    for warning in capacity_status.get('warnings', []):
+                        logger.warning(warning)
+
             except Exception as e:
                 logger.warning(f"Secondary storage health check failed: {e}")
                 self.sync_stats['cloudflare_available'] = False
@@ -445,13 +624,13 @@ class HybridMemoryStorage(MemoryStorage):
 
     async def search_by_tag(self, tags: List[str], match_all: bool = False) -> List[Memory]:
         """Search memories by tags in primary storage."""
-        # SQLite-vec doesn't have match_all parameter in the current implementation
-        # We'll use the tags parameter directly
-        return await self.primary.search_by_tags(tags)
+        operation = "AND" if match_all else "OR"
+        return await self.primary.search_by_tags(tags, operation=operation)
 
     async def search_by_tags(self, tags: List[str], match_all: bool = False) -> List[Memory]:
         """Search memories by tags (alternative method signature)."""
-        return await self.primary.search_by_tags(tags)
+        operation = "AND" if match_all else "OR"
+        return await self.primary.search_by_tags(tags, operation=operation)
 
     async def delete(self, content_hash: str) -> Tuple[bool, str]:
         """Delete a memory from primary storage and queue for secondary sync."""

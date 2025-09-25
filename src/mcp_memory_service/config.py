@@ -294,6 +294,18 @@ if STORAGE_BACKEND == 'hybrid':
 
     logger.info(f"Hybrid storage configuration: sync_interval={HYBRID_SYNC_INTERVAL}s, batch_size={HYBRID_BATCH_SIZE}")
 
+    # Cloudflare Service Limits (for validation and monitoring)
+    CLOUDFLARE_D1_MAX_SIZE_GB = 10  # D1 database hard limit
+    CLOUDFLARE_VECTORIZE_MAX_VECTORS = 5_000_000  # Maximum vectors per index
+    CLOUDFLARE_MAX_METADATA_SIZE_KB = 10  # Maximum metadata size per vector
+    CLOUDFLARE_MAX_FILTER_SIZE_BYTES = 2048  # Maximum filter query size
+    CLOUDFLARE_MAX_STRING_INDEX_SIZE_BYTES = 64  # Maximum indexed string size
+    CLOUDFLARE_BATCH_INSERT_LIMIT = 200_000  # Maximum batch insert size
+
+    # Limit warning thresholds (percentage)
+    CLOUDFLARE_WARNING_THRESHOLD_PERCENT = 80  # Warn at 80% capacity
+    CLOUDFLARE_CRITICAL_THRESHOLD_PERCENT = 95  # Critical at 95% capacity
+
     # Validate Cloudflare configuration for hybrid mode
     if not (CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_VECTORIZE_INDEX and CLOUDFLARE_D1_DATABASE_ID):
         logger.warning("Hybrid mode requires Cloudflare configuration. Missing required variables:")
@@ -317,6 +329,16 @@ else:
     HYBRID_SYNC_ON_STARTUP = None
     HYBRID_FALLBACK_TO_PRIMARY = None
     HYBRID_WARN_ON_SECONDARY_FAILURE = None
+
+    # Also set limit constants to None
+    CLOUDFLARE_D1_MAX_SIZE_GB = None
+    CLOUDFLARE_VECTORIZE_MAX_VECTORS = None
+    CLOUDFLARE_MAX_METADATA_SIZE_KB = None
+    CLOUDFLARE_MAX_FILTER_SIZE_BYTES = None
+    CLOUDFLARE_MAX_STRING_INDEX_SIZE_BYTES = None
+    CLOUDFLARE_BATCH_INSERT_LIMIT = None
+    CLOUDFLARE_WARNING_THRESHOLD_PERCENT = None
+    CLOUDFLARE_CRITICAL_THRESHOLD_PERCENT = None
 
 # ChromaDB settings with performance optimizations
 CHROMA_SETTINGS = {
