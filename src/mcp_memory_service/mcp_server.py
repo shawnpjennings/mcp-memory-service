@@ -142,8 +142,8 @@ async def mcp_server_lifespan(server: FastMCP) -> AsyncIterator[MCPServerContext
             sqlite_db_path=SQLITE_VEC_PATH,
             embedding_model=EMBEDDING_MODEL_NAME,
             cloudflare_config=cloudflare_config,
-            sync_interval=HYBRID_SYNC_INTERVAL or 300,
-            batch_size=HYBRID_BATCH_SIZE or 50
+            sync_interval=HYBRID_SYNC_INTERVAL,
+            batch_size=HYBRID_BATCH_SIZE
         )
     else:  # ChromaStorage
         storage = StorageClass(
