@@ -4,6 +4,29 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.22.1] - 2025-09-26
+
+### 🔧 **Dashboard Statistics Fix**
+
+#### Bug Fixes
+- **🎯 Backend-Agnostic Dashboard Stats** - Fixed `dashboard_get_stats` to use configured storage backend instead of hardcoded ChromaDB
+  - ❌ **Previous Issue**: Dashboard always showed ChromaDB stats (often 0 memories) regardless of actual backend
+  - ✅ **Fixed**: Now properly detects and uses SQLite-vec, Cloudflare, or ChromaDB based on configuration
+  - ✅ **Consistency**: Uses same pattern as `handle_check_database_health` for reliable backend detection
+  - ✅ **Accuracy**: Dashboard now shows correct memory counts and backend information
+
+#### Technical Improvements
+- **Backend Detection**: Dynamic storage type detection via `storage.__class__.__name__`
+- **Error Handling**: Proper async/await handling and graceful error reporting
+- **Code Consistency**: Unified approach with existing health check functionality
+
+---
+
+**Resolves**: GitHub Issue where dashboard stats were incorrectly hardcoded to ChromaDB
+**Credit**: Thanks to @MichaelPaulukonis for identifying and fixing this backend detection issue
+
+---
+
 ## [6.22.0] - 2024-09-25
 
 ### 🎯 **Chronological Ordering & Performance Improvements**
