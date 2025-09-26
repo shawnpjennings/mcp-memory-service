@@ -2325,7 +2325,6 @@ class MemoryServer:
     async def handle_dashboard_get_stats(self, arguments: dict) -> List[types.TextContent]:
         """Dashboard version that returns database statistics as JSON."""
         logger.info("=== EXECUTING DASHBOARD_GET_STATS ===")
-        import os
         
         # Initialize storage using the configured backend (like health check does)
         try:
@@ -2370,11 +2369,7 @@ class MemoryServer:
                     all_tags = set()
                     for tag_string in all_tag_strings:
                         if tag_string:
-                            # Handle both comma-separated and individual tags
-                            if ',' in tag_string:
-                                tags = [tag.strip() for tag in tag_string.split(',') if tag.strip()]
-                            else:
-                                tags = [tag_string.strip()]
+                            tags = [tag.strip() for tag in tag_string.split(',') if tag.strip()]
                             all_tags.update(tags)
                     unique_tags = len(all_tags)
                     
@@ -2412,9 +2407,9 @@ class MemoryServer:
                 # ChromaDB backend stats (legacy/fallback)
                 if storage.collection is not None:
                     # Get all memories to count them and extract tags
-                    all_data = storage.collection.get()
+                    total_memories = storage.collection.count()
+                    all_data = storage.collection.get(include=["metadatas"])
                     if all_data and all_data.get("metadatas"):
-                        total_memories = len(all_data["metadatas"])
                         
                         # Count unique tags
                         all_tags = set()
