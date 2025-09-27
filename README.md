@@ -9,11 +9,31 @@
 [![MCP Protocol](https://img.shields.io/badge/MCP-Compatible-4CAF50?style=flat)](https://modelcontextprotocol.io/)
 [![Multi-Client](https://img.shields.io/badge/Multi--Client-13+%20Apps-FF6B35?style=flat)](https://github.com/doobidoo/mcp-memory-service/wiki)
 
-**Universal MCP memory service** with **OAuth 2.1 team collaboration** and **semantic memory search** for **AI assistants**. Features **Claude Code HTTP transport**, **zero-configuration authentication**, and **enterprise security**. Works with **Claude Desktop, VS Code, Cursor, Continue, and 13+ AI applications** with **SQLite-vec** for fast local search and **Cloudflare** for global distribution.
+**Universal MCP memory service** with **intelligent memory triggers**, **OAuth 2.1 team collaboration**, and **semantic memory search** for **AI assistants**. Features **Natural Memory Triggers v7.1.0** with 85%+ trigger accuracy, **Claude Code HTTP transport**, **zero-configuration authentication**, and **enterprise security**. Works with **Claude Desktop, VS Code, Cursor, Continue, and 13+ AI applications** with **SQLite-vec** for fast local search and **Cloudflare** for global distribution.
 
 <img width="240" alt="MCP Memory Service" src="https://github.com/user-attachments/assets/eab1f341-ca54-445c-905e-273cd9e89555" />
 
 ## 🚀 Quick Start (2 minutes)
+
+### 🧠 **v7.1.0: Natural Memory Triggers for Claude Code**
+
+**🤖 Intelligent Memory Awareness** (Zero Configuration):
+```bash
+# 1. Install MCP Memory Service
+git clone https://github.com/doobidoo/mcp-memory-service.git
+cd mcp-memory-service && python install.py
+
+# 2. Install Natural Memory Triggers
+cd claude-hooks && ./install-natural-triggers.sh
+
+# 3. Test intelligent triggers
+node memory-mode-controller.js status
+# ✅ Done! Claude Code now automatically detects when you need memory context
+```
+
+**📖 Complete Guide**: [Natural Memory Triggers v7.1.0](https://github.com/doobidoo/mcp-memory-service/wiki/Natural-Memory-Triggers-v7.1.0)
+
+---
 
 ### 🆕 **v7.0.0: OAuth 2.1 & Claude Code HTTP Transport**
 
@@ -96,6 +116,14 @@ These warnings disappear after the first successful run. The service is working 
 ## 📚 Complete Documentation
 
 **👉 Visit our comprehensive [Wiki](https://github.com/doobidoo/mcp-memory-service/wiki) for detailed guides:**
+
+### 🧠 v7.1.0 Natural Memory Triggers (Latest)
+- **[Natural Memory Triggers v7.1.0 Guide](https://github.com/doobidoo/mcp-memory-service/wiki/Natural-Memory-Triggers-v7.1.0)** - Intelligent automatic memory awareness
+  - ✅ **85%+ trigger accuracy** with semantic pattern detection
+  - ✅ **Multi-tier performance** (50ms instant → 150ms fast → 500ms intensive)
+  - ✅ **CLI management system** for real-time configuration
+  - ✅ **Git-aware context** integration for enhanced relevance
+  - ✅ **Zero-restart installation** with dynamic hook loading
 
 ### 🆕 v7.0.0 OAuth & Team Collaboration
 - **[🔐 OAuth 2.1 Setup Guide](https://github.com/doobidoo/mcp-memory-service/wiki/OAuth-2.1-Setup-Guide)** - **NEW!** Complete OAuth 2.1 Dynamic Client Registration guide
