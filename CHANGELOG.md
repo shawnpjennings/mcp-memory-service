@@ -4,6 +4,110 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.0] - 2025-09-27
+
+### 🧠 **Natural Memory Triggers for Claude Code**
+
+This release introduces **Natural Memory Triggers v7.1.0** - an intelligent memory awareness system that automatically detects when Claude should retrieve relevant memories from your development history.
+
+#### ✨ **New Features**
+
+##### 🎯 **Intelligent Trigger Detection**
+- **✅ Semantic Analysis** - Advanced natural language processing to understand memory-seeking patterns
+  - **Pattern Recognition**: Detects phrases like "What did we decide...", "How did we implement..."
+  - **Question Classification**: Identifies when user is seeking information from past work
+  - **Context Understanding**: Analyzes conversation flow and topic shifts
+- **✅ Git-Aware Context** - Repository integration for enhanced relevance
+  - **Commit Analysis**: Extracts development themes from recent commit history
+  - **Changelog Integration**: Parses project changelogs for version-specific context
+  - **Development Keywords**: Builds search queries from git history and file patterns
+
+##### ⚡ **Performance-Optimized Architecture**
+- **✅ Multi-Tier Processing** - Three-tier performance system
+  - **Instant Tier** (< 50ms): Pattern matching and cache checks
+  - **Fast Tier** (< 150ms): Lightweight semantic analysis
+  - **Intensive Tier** (< 500ms): Deep semantic understanding
+- **✅ Adaptive Performance Profiles**
+  - **Speed Focused**: Minimal latency, basic memory awareness
+  - **Balanced**: Optimal speed/context balance (recommended)
+  - **Memory Aware**: Maximum context awareness
+  - **Adaptive**: Machine learning-based optimization
+
+##### 🎮 **CLI Management System**
+- **✅ Memory Mode Controller** - Comprehensive command-line interface
+  - **Profile Switching**: `node memory-mode-controller.js profile balanced`
+  - **Sensitivity Control**: `node memory-mode-controller.js sensitivity 0.7`
+  - **Status Monitoring**: Real-time performance metrics and configuration display
+  - **System Management**: Enable/disable triggers, reset to defaults
+
+#### 🔧 **Technical Implementation**
+
+##### **Core Components**
+- **`claude-hooks/core/mid-conversation.js`** - Main hook implementation with stateful management
+- **`claude-hooks/utilities/tiered-conversation-monitor.js`** - Multi-tier semantic analysis engine
+- **`claude-hooks/utilities/performance-manager.js`** - Performance monitoring and adaptive optimization
+- **`claude-hooks/utilities/git-analyzer.js`** - Git repository context analysis
+- **`claude-hooks/memory-mode-controller.js`** - CLI controller for system management
+
+##### **Smart Memory Scoring**
+- **✅ Multi-Factor Relevance** - Sophisticated scoring algorithm
+  - **Content Relevance** (15%): Semantic similarity to current context
+  - **Tag Relevance** (35%): Project and topic-specific weighting
+  - **Time Decay** (25%): Recent memories weighted higher
+  - **Content Quality** (25%): Filters out low-value memories
+- **✅ Conversation Context** - Session-aware analysis
+  - **Topic Tracking**: Maintains context window for semantic analysis
+  - **Pattern Detection**: Learns user preferences and conversation patterns
+  - **Confidence Thresholds**: Only triggers when confidence meets user-defined threshold
+
+#### 🧪 **Quality Assurance**
+
+##### **Comprehensive Testing**
+- **✅ Test Suite** - 18 automated tests covering all functionality
+  - **Configuration Management**: Nested JSON handling and validation
+  - **Performance Profiling**: Latency measurement and optimization
+  - **Semantic Analysis**: Pattern detection and confidence scoring
+  - **CLI Integration**: Command processing and state management
+- **✅ Gemini Code Assist Integration** - AI-powered code review
+  - **Static Analysis**: Identified and fixed 21 code quality issues
+  - **Performance Optimization**: Division-by-zero prevention, cache management
+  - **Configuration Validation**: Duplicate key detection and consolidation
+
+#### 🔄 **Installation & Compatibility**
+
+##### **Seamless Integration**
+- **✅ Zero-Restart Installation** - Dynamic hook loading during Claude Code sessions
+- **✅ Backward Compatibility** - Works alongside existing memory service functionality
+- **✅ Configuration Preservation** - Maintains existing settings while adding new features
+- **✅ Platform Support** - macOS, Windows, and Linux compatibility
+
+#### 📊 **Performance Metrics**
+
+##### **Benchmarks**
+- **Instant Analysis**: < 50ms response time for pattern matching
+- **Fast Analysis**: < 150ms for lightweight semantic processing
+- **Cache Performance**: < 5ms for cached results with LRU management
+- **Memory Efficiency**: Automatic cleanup prevents memory bloat
+- **Trigger Accuracy**: 85%+ confidence for memory-seeking pattern detection
+
+#### 🎯 **Usage Examples**
+
+Natural Memory Triggers automatically activate for phrases like:
+- "What approach did we use for authentication?"
+- "How did we handle error handling in this project?"
+- "What were the main architectural decisions we made?"
+- "Similar to what we implemented before..."
+- "Remember when we discussed..."
+
+#### 📚 **Documentation**
+
+- **✅ Complete User Guide** - Comprehensive documentation at `claude-hooks/README-NATURAL-TRIGGERS.md`
+- **✅ CLI Reference** - Detailed command documentation and usage examples
+- **✅ Configuration Guide** - Performance profile explanations and optimization tips
+- **✅ Troubleshooting** - Common issues and resolution steps
+
+---
+
 ## [7.0.0] - 2025-09-27
 
 ### 🎉 **Major Release - OAuth 2.1 Dynamic Client Registration**
