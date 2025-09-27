@@ -47,13 +47,15 @@ class MCPTool(BaseModel):
 MCP_TOOLS = [
     MCPTool(
         name="store_memory",
-        description="Store a new memory with optional tags and metadata",
+        description="Store a new memory with optional tags, metadata, and client information",
         inputSchema={
             "type": "object",
             "properties": {
                 "content": {"type": "string", "description": "The memory content to store"},
                 "tags": {"type": "array", "items": {"type": "string"}, "description": "Optional tags for the memory"},
-                "memory_type": {"type": "string", "description": "Optional memory type"}
+                "memory_type": {"type": "string", "description": "Optional memory type (e.g., 'note', 'reminder', 'fact')"},
+                "metadata": {"type": "object", "description": "Additional metadata for the memory"},
+                "client_hostname": {"type": "string", "description": "Client machine hostname for source tracking"}
             },
             "required": ["content"]
         }
@@ -65,7 +67,8 @@ MCP_TOOLS = [
             "type": "object",
             "properties": {
                 "query": {"type": "string", "description": "Search query for finding relevant memories"},
-                "limit": {"type": "integer", "description": "Maximum number of memories to return", "default": 10}
+                "limit": {"type": "integer", "description": "Maximum number of memories to return", "default": 10},
+                "similarity_threshold": {"type": "number", "description": "Minimum similarity score threshold (0.0-1.0)", "default": 0.7, "minimum": 0.0, "maximum": 1.0}
             },
             "required": ["query"]
         }
@@ -100,7 +103,20 @@ MCP_TOOLS = [
             "type": "object",
             "properties": {}
         }
-    )
+    ),
+    MCPTool(
+        name="list_memories",
+        description="List memories with pagination and optional filtering",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "page": {"type": "integer", "description": "Page number (1-based)", "default": 1, "minimum": 1},
+                "page_size": {"type": "integer", "description": "Number of memories per page", "default": 10, "minimum": 1, "maximum": 100},
+                "tag": {"type": "string", "description": "Filter by specific tag"},
+                "memory_type": {"type": "string", "description": "Filter by memory type"}
+            }
+        }
+    ),
 ]
 
 
@@ -181,13 +197,31 @@ async def handle_tool_call(storage, tool_name: str, arguments: Dict[str, Any]) -
         content = arguments.get("content")
         tags = arguments.get("tags", [])
         memory_type = arguments.get("memory_type")
-        content_hash = generate_content_hash(content, arguments.get("metadata", {}))
+        metadata = arguments.get("metadata", {})
+        client_hostname = arguments.get("client_hostname")
+        
+        # Ensure metadata is a dict
+        if isinstance(metadata, str):
+            try:
+                import json
+                metadata = json.loads(metadata)
+            except:
+                metadata = {}
+        elif not isinstance(metadata, dict):
+            metadata = {}
+        
+        # Add client_hostname to metadata if provided
+        if client_hostname:
+            metadata["client_hostname"] = client_hostname
+        
+        content_hash = generate_content_hash(content, metadata)
         
         memory = Memory(
             content=content,
             content_hash=content_hash,
             tags=tags,
-            memory_type=memory_type
+            memory_type=memory_type,
+            metadata=metadata
         )
         
         success, message = await storage.store(memory)
@@ -201,8 +235,17 @@ async def handle_tool_call(storage, tool_name: str, arguments: Dict[str, Any]) -
     elif tool_name == "retrieve_memory":
         query = arguments.get("query")
         limit = arguments.get("limit", 10)
+        similarity_threshold = arguments.get("similarity_threshold", 0.7)
         
+        # Get results from storage (no similarity filtering at storage level)
         results = await storage.retrieve(query=query, n_results=limit)
+        
+        # Apply similarity threshold filtering (same as API implementation)
+        if similarity_threshold is not None:
+            results = [
+                result for result in results
+                if result.relevance_score and result.relevance_score >= similarity_threshold
+            ]
         
         return {
             "results": [
@@ -240,11 +283,11 @@ async def handle_tool_call(storage, tool_name: str, arguments: Dict[str, Any]) -
     elif tool_name == "delete_memory":
         content_hash = arguments.get("content_hash")
         
-        success = await storage.delete_memory(content_hash)
+        success, message = await storage.delete(content_hash)
         
         return {
             "success": success,
-            "message": f"Memory {'deleted' if success else 'not found'}"
+            "message": message
         }
     
     elif tool_name == "check_database_health":
@@ -254,6 +297,43 @@ async def handle_tool_call(storage, tool_name: str, arguments: Dict[str, Any]) -
             "status": "healthy",
             "statistics": stats
         }
+    
+    elif tool_name == "list_memories":
+        page = arguments.get("page", 1)
+        page_size = arguments.get("page_size", 10)
+        tag = arguments.get("tag")
+        memory_type = arguments.get("memory_type")
+        
+        # Calculate offset
+        offset = (page - 1) * page_size
+
+        # Use database-level filtering for better performance
+        tags_list = [tag] if tag else None
+        memories = await storage.get_all_memories(
+            limit=page_size,
+            offset=offset,
+            memory_type=memory_type,
+            tags=tags_list
+        )
+        
+        return {
+            "memories": [
+                {
+                    "content": memory.content,
+                    "content_hash": memory.content_hash,
+                    "tags": memory.tags,
+                    "memory_type": memory.memory_type,
+                    "metadata": memory.metadata,
+                    "created_at": memory.created_at_iso,
+                    "updated_at": memory.updated_at_iso
+                }
+                for memory in memories
+            ],
+            "page": page,
+            "page_size": page_size,
+            "total_found": len(memories)
+        }
+    
     
     else:
         raise ValueError(f"Unknown tool: {tool_name}")
