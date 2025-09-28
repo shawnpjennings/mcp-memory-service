@@ -109,7 +109,7 @@ export MCP_API_KEY="$(openssl rand -base64 32)" # Generate secure API key
 
 ```bash
 # Installation (Zero-restart required)
-cd claude-hooks && ./install-natural-triggers.sh
+cd claude-hooks && python install_hooks.py --natural-triggers
 
 # CLI Management
 node ~/.claude/hooks/memory-mode-controller.js status

@@ -24,7 +24,7 @@ git clone https://github.com/doobidoo/mcp-memory-service.git
 cd mcp-memory-service && python install.py
 
 # 2. Install Natural Memory Triggers
-cd claude-hooks && ./install-natural-triggers.sh
+cd claude-hooks && python install_hooks.py --natural-triggers
 
 # 3. Test intelligent triggers
 node memory-mode-controller.js status

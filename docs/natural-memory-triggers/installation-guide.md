@@ -21,9 +21,8 @@ The automated installer handles the complete setup with comprehensive testing:
 # Navigate to the claude-hooks directory
 cd mcp-memory-service/claude-hooks
 
-# Make installer executable and run
-chmod +x install-natural-triggers.sh
-./install-natural-triggers.sh
+# Install with unified Python installer
+python install_hooks.py --natural-triggers
 ```
 
 **What the installer does:**
