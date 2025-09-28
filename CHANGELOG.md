@@ -4,6 +4,45 @@ All notable changes to the MCP Memory Service project will be documented in this
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [7.1.3] - 2025-09-28
+
+### 🚨 **SECURITY FIX**
+
+- **CRITICAL: Removed sensitive configuration files from repository** - Immediate security remediation:
+  - **Removed `.claude/settings.local.json*` files from git tracking and complete history**
+  - **Used `git filter-branch` to purge all sensitive data from repository history**
+  - **Force-pushed rewritten history to remove exposed API tokens and secrets**
+  - Added comprehensive `.gitignore` patterns for future protection
+  - **BREAKING: Repository history rewritten - force pull required for existing clones**
+  - **ACTION REQUIRED: Rotate any exposed Cloudflare API tokens immediately**
+  - Addresses critical security vulnerability from issues #118 and personal config exposure
+
+### ⚠️ **Post-Security Actions Required**
+1. **Immediately rotate any Cloudflare API tokens** that were in the exposed files
+2. **Force pull** or re-clone repository: `git fetch origin && git reset --hard origin/develop`
+3. **Review local `.claude/settings.local.json`** files for any other sensitive data
+4. **Verify no sensitive data** remains in your local configurations
+
+## [7.1.2] - 2025-09-28
+
+### 🔧 **Improvements**
+
+- **Stop tracking personal Claude settings to prevent merge conflicts** - Added `.claude/settings.local.json*` patterns to `.gitignore`:
+  - Prevents future tracking of personal configuration files
+  - Uses `--skip-worktree` to ignore local changes to existing tracked files
+  - Protects user privacy and eliminates merge conflicts
+  - Preserves existing user configurations while fixing repository hygiene (Fixes #118)
+
+## [7.1.1] - 2025-09-28
+
+### 🐛 **Bug Fixes**
+
+- **Fixed misleading error message in document ingestion** - The `ingest_document` tool now provides accurate error messages:
+  - Shows "File not found" with full resolved path when files don't exist
+  - Only shows "Unsupported file format" for truly unsupported formats
+  - Includes list of supported formats (.md, .txt, .pdf, .json, .csv) in format errors
+  - Resolves issue where Markdown files were incorrectly reported as unsupported (Fixes #122)
+
 ## [7.1.0] - 2025-09-27
 
 ### 🧠 **Natural Memory Triggers for Claude Code**
