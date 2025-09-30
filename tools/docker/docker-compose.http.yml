@@ -9,7 +9,7 @@ services:
       context: ../..
       dockerfile: tools/docker/Dockerfile
     ports:
-      - "${HTTP_PORT:-8000}:8000"  # Map to different port if needed
+      - "${HTTP_PORT:-7777}:7777"  # Map to different port if needed
     volumes:
       # Single data directory for all storage
       - ./data:/app/data
@@ -25,7 +25,7 @@ services:
       - MCP_MEMORY_BACKUPS_PATH=/app/data/backups
       
       # HTTP configuration
-      - MCP_HTTP_PORT=8000
+      - MCP_HTTP_PORT=7777
       - MCP_HTTP_HOST=0.0.0.0
       - MCP_API_KEY=${MCP_API_KEY:-your-secure-api-key-here}
       
